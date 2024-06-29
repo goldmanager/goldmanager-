@@ -1,10 +1,16 @@
 services:
   mariadb:
-    image: 'mariadb:latest'
+    image: 'mariadb:11.2'
     environment:
       - 'MARIADB_DATABASE=mydatabase'
-      - 'MARIADB_PASSWORD=secret'
+      - 'MARIADB_PASSWORD=mypass'
       - 'MARIADB_ROOT_PASSWORD=verysecret'
       - 'MARIADB_USER=myuser'
+      - 'MYSQL_ROOT_HOST=%'
     ports:
-      - '3306'
+      - '3307:3306'
+    volumes:
+      - "db_data:/var/lib/mysql"
+      - ".init-scripts/initdb.sql:/docker-entrypoint-initdb.d/initdb.sql"
+volumes:
+  db_data:
