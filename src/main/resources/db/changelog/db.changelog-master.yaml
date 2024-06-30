@@ -13,6 +13,9 @@ databaseChangeLog:
         -  column:
             name:  name
             type:  varchar(255)
+            constraints:
+             nullable: false
+             unique: true
         -  column:
             name:  price
             type:  float
@@ -27,7 +30,10 @@ databaseChangeLog:
              primaryKey: true
         -  column:
             name:  name
-            type:  varchar(500)
+            type:  varchar(255)
+            constraints:
+             nullable: false
+             unique: true
         -  column:
             name:  material
             type:  varchar(255)
