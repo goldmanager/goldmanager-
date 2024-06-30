@@ -20,7 +20,10 @@ configurations {
 	}
 
 }
-
+bootBuildImage {
+    imageName = "${buildDockerImageName}:${project.version}"
+   
+}
 repositories {
 	mavenCentral()
 }
