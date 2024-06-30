@@ -54,7 +54,7 @@ databaseChangeLog:
             name:  name
             type:  varchar(500)
         -  column:
-            name:  type
+            name:  itemtype
             type:  varchar(255)
             constraints:
              nullable: false

@@ -14,11 +14,11 @@ public class ItemTypeService {
 	@Autowired
 	private ItemTypeRepository repository;
 
-	public void create(ItemType itemType) {
-		repository.store(itemType);
+	public ItemType create(ItemType itemType) {
+		return repository.save(itemType);
 	}
 	
 	public List<ItemType> list(){
-		return repository.list();
+		return repository.findAll();
 	}
 }

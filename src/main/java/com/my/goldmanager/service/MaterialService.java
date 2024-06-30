@@ -14,11 +14,15 @@ public class MaterialService {
 	@Autowired
 	private MaterialRepository materialRepository;
 
-	public void create(Material material) {
-		materialRepository.store(material);
+	public Material save(Material material) {
+		return materialRepository.save(material);
 	}
 
 	public List<Material> list() {
-		return materialRepository.list();
+		return materialRepository.findAll();
+	}
+	
+	public Material getById(String id) {
+		return materialRepository.findById(id).orElseGet(null);
 	}
 }
