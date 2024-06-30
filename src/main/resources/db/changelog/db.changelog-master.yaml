@@ -1,7 +1,7 @@
 databaseChangeLog:
 -  changeSet:
-    id:  createTable-item
-    author:  liquibase-docs
+    id:  v1
+    author:  fg
     changes:
     -  createTable:
         columns:
@@ -9,17 +9,54 @@ databaseChangeLog:
             name:  id
             type:  varchar(255)
             constraints:
-              primaryKey: true
+             primaryKey: true
         -  column:
             name:  name
             type:  varchar(255)
         -  column:
-            name:  type
-            type:  varchar(255)
-        -  column:
             name:  price
             type:  float
-
+        remarks:  Material
+        tableName:  material
+    -  createTable:
+        columns:
+        -  column:
+            name:  id
+            type:  varchar(255)
+            constraints:
+             primaryKey: true
+        -  column:
+            name:  name
+            type:  varchar(500)
+        -  column:
+            name:  material
+            type:  varchar(255)
+            constraints:
+             nullable: false
+             foreignKeyName: fk_itemTyoe_material
+             references: material(id)
+        remarks:  ItemType
+        tableName:  itemtype
+    -  createTable:
+        columns:
+        -  column:
+            name:  id
+            type:  varchar(255)
+            constraints:
+             primaryKey: true
+        -  column:
+            name:  name
+            type:  varchar(500)
+        -  column:
+            name:  type
+            type:  varchar(255)
+            constraints:
+             nullable: false
+             foreignKeyName: fk_item_itemtype
+             references: itemtype(id)
+        -  column:
+            name:  amount_oz
+            type:  float
         remarks:  Item
         tableName:  item
         
