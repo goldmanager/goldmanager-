@@ -34,7 +34,7 @@ public class PriceService {
 		Price result = new Price();
 		if (item != null) {
 			result.setItem(item);
-			result.setPrice(item.getAmount_oz() * item.getItemType().getMaterial().getPrice());
+			result.setPrice(item.getAmount()*item.getUnit().getFactor() * item.getItemType().getModifier()* item.getItemType().getMaterial().getPrice());
 		}
 		return result;
 	}

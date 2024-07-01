@@ -11,8 +11,7 @@ import lombok.Setter;
 
 @Entity
 public class Material {
-	@Id
-   
+	@Id 
 	@Getter
 	@Setter
 	private String id;

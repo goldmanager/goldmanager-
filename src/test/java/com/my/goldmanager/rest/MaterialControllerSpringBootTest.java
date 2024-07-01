@@ -1,8 +1,9 @@
-package com.my.goldmanager;
+package com.my.goldmanager.rest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -86,6 +87,22 @@ public class MaterialControllerSpringBootTest {
 				.content(objectMapper.writeValueAsString(material))).andExpect(status().isCreated())
 				.andExpect(jsonPath("$.name").value("gold")).andExpect(jsonPath("$.price").value(100.1f));
 	}
+	@Test
+	public void testDelete() throws JsonProcessingException, Exception {
+		Material material = new Material();
+		material.setName("gold");
+		material.setPrice(100.1f);
+		material = materialRepository.save(material);
+		
+		mockMvc.perform(delete("/materials/{id}", material.getId()))
+        .andExpect(status().isNoContent());
+		
+		assertFalse(materialRepository.existsById(material.getId()));
+		
+		mockMvc.perform(delete("/materials/{id}", material.getId()))
+        .andExpect(status().isNotFound());
+		
+	}
 
 	@Test
 	public void testUpdate() throws JsonProcessingException, Exception {
@@ -97,7 +114,7 @@ public class MaterialControllerSpringBootTest {
 		created.setPrice(200);
 
 		mockMvc.perform(put("/materials/" + created.getId()).contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(created))).andExpect(status().isCreated())
+				.content(objectMapper.writeValueAsString(created))).andExpect(status().isOk())
 				.andExpect(jsonPath("$.name").value("gold")).andExpect(jsonPath("$.price").value(200));
 
 	}

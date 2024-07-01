@@ -24,6 +24,19 @@ databaseChangeLog:
     -  createTable:
         columns:
         -  column:
+            name:  name
+            type:  varchar(255)
+            constraints:
+             primaryKey: true
+        -  column:
+            name:  factor
+            type:  float
+            defaultValueNumeric: 1.0		        
+        remarks:  Unit
+        tableName:  unit
+    -  createTable:
+        columns:
+        -  column:
             name:  id
             type:  varchar(255)
             constraints:
@@ -41,6 +54,12 @@ databaseChangeLog:
              nullable: false
              foreignKeyName: fk_itemTyoe_material
              references: material(id)
+        -  column:
+            name:  modifier
+            type:  float
+            defaultValueNumeric: 1.0
+            constraints:
+             nullable: false
         remarks:  ItemType
         tableName:  itemtype
     -  createTable:
@@ -61,8 +80,15 @@ databaseChangeLog:
              foreignKeyName: fk_item_itemtype
              references: itemtype(id)
         -  column:
-            name:  amount_oz
+            name:  amount
             type:  float
+        - column:
+            name: unit
+            type: varchar(255)
+            constraints:
+             nullable: false
+             foreignKeyName: fk_item_unit
+             references: unit(name)
         remarks:  Item
         tableName:  item
         

@@ -25,4 +25,12 @@ public class MaterialService {
 	public Material getById(String id) {
 		return materialRepository.findById(id).orElseGet(null);
 	}
+	
+	public boolean deleteById(String id) {
+		if(materialRepository.existsById(id)) {
+			materialRepository.deleteById(id);
+			return true;
+		}
+		return false;
+	}
 }

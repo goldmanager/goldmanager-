@@ -28,7 +28,7 @@ public class Item {
 	@Setter
 	@Getter
 	@Column
-	private float amount_oz;
+	private float amount;
 
 	@ManyToOne
 	@JoinColumn(name = "itemtype")
@@ -36,6 +36,13 @@ public class Item {
 	@Getter
 	private ItemType itemType;
 	
+
+	@ManyToOne
+	@JoinColumn(name = "unit")
+	@Setter
+	@Getter
+	private Unit unit;
+
 	@PrePersist
     protected void onCreate() {
         if (this.id == null) {
