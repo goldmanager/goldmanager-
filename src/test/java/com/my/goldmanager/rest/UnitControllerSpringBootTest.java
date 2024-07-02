@@ -3,6 +3,7 @@ package com.my.goldmanager.rest;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -74,30 +75,44 @@ public class UnitControllerSpringBootTest {
 		assertEquals(oz.getFactor(), result.getFactor());
 
 	}
-	
 
 	@Test
 	public void testCreate() throws JsonProcessingException, Exception {
 		Unit gramm = new Unit();
 		gramm.setName("gramm");
 		gramm.setFactor(1.0f / 31.1034768f);
-		mockMvc.perform(post("/units").contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(gramm))).andExpect(status().isCreated())
-				.andExpect(jsonPath("$.name").value("gramm")).andExpect(jsonPath("$.factor").value(gramm.getFactor()));
+		mockMvc.perform(
+				post("/units").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(gramm)))
+				.andExpect(status().isCreated()).andExpect(jsonPath("$.name").value("gramm"))
+				.andExpect(jsonPath("$.factor").value(gramm.getFactor()));
 	}
-	
+
 	@Test
 	public void testUpdate() throws JsonProcessingException, Exception {
 		Unit gramm = new Unit();
 		gramm.setName("gramm");
 		gramm.setFactor(1.0f);
-		
+
 		Unit created = unitRepository.save(gramm);
 		created.setFactor(0.5f);
 
 		mockMvc.perform(put("/units/" + created.getName()).contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(created))).andExpect(status().isOk())
 				.andExpect(jsonPath("$.name").value("gramm")).andExpect(jsonPath("$.factor").value(0.5));
+
+	}
+
+	@Test
+	public void testDelete() throws JsonProcessingException, Exception {
+		Unit unit = new Unit();
+		unit.setName("OZ");
+		unit.setFactor(1);
+		unitRepository.save(unit);
+		mockMvc.perform(delete("/units/{id}", unit.getName())).andExpect(status().isNoContent());
+
+		assertFalse(unitRepository.existsById(unit.getName()));
+
+		mockMvc.perform(delete("/units/{id}", unit.getName())).andExpect(status().isNotFound());
 
 	}
 
