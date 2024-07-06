@@ -5,8 +5,8 @@ plugins {
 	id 'org.asciidoctor.jvm.convert' version '3.3.2'
 }
 
-group = 'com.my'
-version = '0.0.1-SNAPSHOT'
+group = 'de.goldmanager'
+version = '0.0.1'
 
 java {
 	toolchain {
