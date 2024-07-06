@@ -3,10 +3,7 @@ name: Gradle Build and Test
 on:
   push:
     branches:
-      - main
-      - 'development'
-      -'feature/**'
-      -'release/**'
+      - '**'
   pull_request:
     branches:
       - main
