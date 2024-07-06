@@ -19,7 +19,7 @@ services:
       retries: 10
 
   app:
-    image: docker.io/fg1212/goldmanager:0.0.1-SNAPSHOT
+    image: docker.io/fg1212/goldmanager:latest
     container_name: goldmanager
     environment:
       SPRING_DATASOURCE_URL: jdbc:mariadb://db:3306/mydatabase
