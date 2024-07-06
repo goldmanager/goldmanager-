@@ -25,13 +25,24 @@ public class ItemController {
 	@Autowired
 	private ItemService itemService;
 
+	
+	/**
+	 * Create Item
+	 * @param item
+	 * @return
+	 */
 	@PostMapping
 	public ResponseEntity<Item> create(@RequestBody Item item) {
 		Item savedItem =itemService.create(item); 
 		return ResponseEntity.status(HttpStatus.CREATED).body(savedItem);
 		
 	}
-	
+	/**
+	 * Update Item
+	 * @param id
+	 * @param item
+	 * @return
+	 */
 	@PutMapping(path = "/{id}")
 	public ResponseEntity<Item> update(@PathVariable(name = "id") String id, @RequestBody Item item){
 		Optional<Item> result = itemService.update(id, item);
@@ -41,6 +52,11 @@ public class ItemController {
 		return ResponseEntity.notFound().build();
 	}
 
+	/**
+	 * Gets the item by provided id
+	 * @param id
+	 * @return
+	 */
 	@GetMapping(path ="/{id}")
 	public ResponseEntity<Item> get(@PathVariable(name = "id") String id){
 		Optional<Item> result = itemService.getById(id);
@@ -50,6 +66,11 @@ public class ItemController {
 		return ResponseEntity.notFound().build();
 	}
 	
+	/**
+	 * Deletes the item with provided id
+	 * @param id
+	 * @return
+	 */
 	@DeleteMapping(path="/{id}")
 	public ResponseEntity<Void> delete(@PathVariable(name = "id") String id){
 		if(itemService.delete(id)) {
@@ -58,6 +79,10 @@ public class ItemController {
 		return ResponseEntity.notFound().build();
 	}
 	
+	/**
+	 * List all Items
+	 * @return
+	 */
 	@GetMapping
 	public List<Item> list(){
 		return itemService.list();

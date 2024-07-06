@@ -26,12 +26,24 @@ public class ItemTypeController {
 	@Autowired
 	private ItemTypeService itemTypeService;
 
+	/**
+	 * Create {@link ItemType}
+	 * @param itemType
+	 * @return
+	 */
 	@PostMapping
 	public ResponseEntity<ItemType> create(@RequestBody ItemType itemType) {
 		ItemType savedItemType =itemTypeService.create(itemType); 
 		return ResponseEntity.status(HttpStatus.CREATED).body(savedItemType);
 		
 	}
+	
+	/**
+	 * Updates provided {@link ItemType}
+	 * @param id
+	 * @param itemType
+	 * @return
+	 */
 	@PutMapping(path = "/{id}")
 	public ResponseEntity<ItemType> update(@PathVariable(name = "id") String id, @RequestBody ItemType itemType){
 		Optional<ItemType> result = itemTypeService.update(id, itemType);
@@ -41,6 +53,11 @@ public class ItemTypeController {
 		return ResponseEntity.notFound().build();
 	}
 
+	/**
+	 * Returns ItemType by Id
+	 * @param id
+	 * @return
+	 */
 	@GetMapping(path ="/{id}")
 	public ResponseEntity<ItemType> get(@PathVariable(name = "id") String id){
 		Optional<ItemType> result = itemTypeService.getById(id);
@@ -50,6 +67,11 @@ public class ItemTypeController {
 		return ResponseEntity.notFound().build();
 	}
 	
+	/**
+	 * Delete ItemType by id
+	 * @param id
+	 * @return
+	 */
 	@DeleteMapping(path="/{id}")
 	public ResponseEntity<Void> delete(@PathVariable(name = "id") String id){
 		if(itemTypeService.delete(id)) {
@@ -57,6 +79,11 @@ public class ItemTypeController {
 		}
 		return ResponseEntity.notFound().build();
 	}
+	
+	/**
+	 * List all Item types
+	 * @return
+	 */
 	@GetMapping
 	public List<ItemType> list() {
 		return itemTypeService.list();
