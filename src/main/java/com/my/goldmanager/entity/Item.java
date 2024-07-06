@@ -11,7 +11,7 @@ import jakarta.persistence.PrePersist;
 import lombok.Getter;
 import lombok.Setter;
 
-@Entity(name = "item")
+@Entity
 public class Item {
 
 	@Id

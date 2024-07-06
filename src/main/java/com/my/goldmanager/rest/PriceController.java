@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.my.goldmanager.rest.entity.Price;
+import com.my.goldmanager.rest.entity.PriceGroupMap;
 import com.my.goldmanager.rest.entity.PriceList;
 import com.my.goldmanager.service.PriceService;
 
@@ -45,4 +46,14 @@ public class PriceController {
 		return ResponseEntity.notFound().build();
 	}
 
+	@GetMapping(path = "/groupBy/material")
+	public ResponseEntity<PriceGroupMap> groupByMaterial() {
+
+		return ResponseEntity.ok(priceService.groupByMaterial());
+	}
+	@GetMapping(path = "/groupBy/itemType")
+	public ResponseEntity<PriceGroupMap> groupByItemtype() {
+
+		return ResponseEntity.ok(priceService.groupByItemType());
+	}
 }

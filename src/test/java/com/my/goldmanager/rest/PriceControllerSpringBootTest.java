@@ -7,6 +7,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -30,6 +32,7 @@ import com.my.goldmanager.repository.ItemTypeRepository;
 import com.my.goldmanager.repository.MaterialRepository;
 import com.my.goldmanager.repository.UnitRepository;
 import com.my.goldmanager.rest.entity.Price;
+import com.my.goldmanager.rest.entity.PriceGroupMap;
 import com.my.goldmanager.rest.entity.PriceList;
 
 @SpringBootTest
@@ -173,6 +176,76 @@ public class PriceControllerSpringBootTest {
 	}
 
 	@Test
+	void testGroupByItemtype() throws UnsupportedEncodingException, Exception {
+
+		String body = mockMvc.perform(get("/prices/groupBy/itemType")).andExpect(status().isOk())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON)).andReturn().getResponse()
+				.getContentAsString();
+
+		PriceGroupMap result = objectMapper.readValue(body, PriceGroupMap.class);
+		assertNotNull(result);
+		assertEquals(Long.valueOf(itemTypeRepository.count()).intValue(), result.getPriceGroups().size());
+		List<ItemType> itemtypes = itemTypeRepository.findAll();
+		for (ItemType itemtype : itemtypes) {
+			List<Item> expectedItems = items.stream()
+					.filter(item -> item.getItemType().getId().equals(itemtype.getId())).toList();
+
+			assertEquals(expectedItems.size(), result.getPriceGroups().get(itemtype.getName()).getPrices().size());
+			assertEquals(getAmmount(expectedItems), result.getPriceGroups().get(itemtype.getName()).getAmount());
+			assertEquals(getPriceSummary(expectedItems),
+					result.getPriceGroups().get(itemtype.getName()).getTotalPrize());
+
+			for (int current = 0; current < expectedItems.size(); current++) {
+				Item expected = expectedItems.get(current);
+				Price actual = result.getPriceGroups().get(itemtype.getName()).getPrices().get(current);
+				assertEquals(getPrice(expected), actual.getPrice());
+				assertEquals(expected.getName(), actual.getItem().getName());
+			}
+		}
+
+	}
+
+	@Test
+	void testGroupByMaterial() throws UnsupportedEncodingException, Exception {
+
+		String body = mockMvc.perform(get("/prices/groupBy/material")).andExpect(status().isOk())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON)).andReturn().getResponse()
+				.getContentAsString();
+
+		PriceGroupMap result = objectMapper.readValue(body, PriceGroupMap.class);
+		assertNotNull(result);
+		assertEquals(2, result.getPriceGroups().size());
+
+		List<Item> goldItems = items.stream()
+				.filter(item -> item.getItemType().getMaterial().getId().equals(gold.getId())).toList();
+		List<Item> silverItems = items.stream()
+				.filter(item -> item.getItemType().getMaterial().getId().equals(silver.getId())).toList();
+
+		assertEquals(goldItems.size(), result.getPriceGroups().get(gold.getName()).getPrices().size());
+		assertEquals(getAmmount(goldItems), result.getPriceGroups().get(gold.getName()).getAmount());
+		assertEquals(getPriceSummary(goldItems), result.getPriceGroups().get(gold.getName()).getTotalPrize());
+
+		for (int current = 0; current < goldItems.size(); current++) {
+			Item expected = goldItems.get(current);
+			Price actual = result.getPriceGroups().get(gold.getName()).getPrices().get(current);
+			assertEquals(getPrice(expected), actual.getPrice());
+			assertEquals(expected.getName(), actual.getItem().getName());
+		}
+
+		assertEquals(silverItems.size(), result.getPriceGroups().get(silver.getName()).getPrices().size());
+		assertEquals(getAmmount(silverItems), result.getPriceGroups().get(silver.getName()).getAmount());
+		assertEquals(getPriceSummary(silverItems), result.getPriceGroups().get(silver.getName()).getTotalPrize());
+
+		for (int current = 0; current < silverItems.size(); current++) {
+			Item expected = silverItems.get(current);
+			Price actual = result.getPriceGroups().get(silver.getName()).getPrices().get(current);
+			assertEquals(getPrice(expected), actual.getPrice());
+			assertEquals(expected.getName(), actual.getItem().getName());
+		}
+
+	}
+
+	@Test
 	void testlistPricesForMaterialGold() throws UnsupportedEncodingException, Exception {
 
 		String body = mockMvc.perform(get("/prices/material/" + gold.getId())).andExpect(status().isOk())
@@ -248,6 +321,15 @@ public class PriceControllerSpringBootTest {
 
 	}
 
+	private float getAmmount(List<Item> items) {
+		float result = 0;
+		for (Item item : items) {
+			result += item.getAmount() * (1.0 / item.getUnit().getFactor());
+		}
+		BigDecimal bd = new BigDecimal(result).setScale(2, RoundingMode.HALF_DOWN);
+		return bd.floatValue();
+	}
+
 	private float getPriceSummary(List<Item> items) {
 		float result = 0;
 		for (Item item : items) {
@@ -257,8 +339,9 @@ public class PriceControllerSpringBootTest {
 	}
 
 	private float getPrice(Item item) {
-		return item.getAmount() * item.getUnit().getFactor() * item.getItemType().getModifier()
-				* item.getItemType().getMaterial().getPrice();
+		BigDecimal price = new BigDecimal(item.getAmount() * item.getUnit().getFactor() * item.getItemType().getModifier()
+				* item.getItemType().getMaterial().getPrice()).setScale(2, RoundingMode.HALF_DOWN);
+		return price.floatValue();
 	}
 
 	@AfterEach
