@@ -20,7 +20,7 @@ databaseChangeLog:
             name:  price
             type:  float
         remarks:  Material
-        tableName:  material
+        tableName:  MATERIAL
     -  createTable:
         columns:
         -  column:
@@ -33,7 +33,7 @@ databaseChangeLog:
             type:  float
             defaultValueNumeric: 1.0		        
         remarks:  Unit
-        tableName:  unit
+        tableName:  UNIT
     -  createTable:
         columns:
         -  column:
@@ -53,7 +53,7 @@ databaseChangeLog:
             constraints:
              nullable: false
              foreignKeyName: fk_itemTyoe_material
-             references: material(id)
+             references: MATERIAL(id)
         -  column:
             name:  modifier
             type:  float
@@ -61,7 +61,7 @@ databaseChangeLog:
             constraints:
              nullable: false
         remarks:  ItemType
-        tableName:  itemtype
+        tableName:  ITEMTYPE
     -  createTable:
         columns:
         -  column:
@@ -78,7 +78,7 @@ databaseChangeLog:
             constraints:
              nullable: false
              foreignKeyName: fk_item_itemtype
-             references: itemtype(id)
+             references: ITEMTYPE(id)
         -  column:
             name:  amount
             type:  float
@@ -90,5 +90,5 @@ databaseChangeLog:
              foreignKeyName: fk_item_unit
              references: unit(name)
         remarks:  Item
-        tableName:  item
+        tableName:  ITEM
         
