@@ -57,8 +57,8 @@ public class MaterialService {
 		return materialRepository.findAll();
 	}
 
-	public Material getById(String id) {
-		return materialRepository.findById(id).orElseGet(null);
+	public Optional<Material> getById(String id) {
+		return materialRepository.findById(id);
 	}
 
 	public boolean deleteById(String id) {

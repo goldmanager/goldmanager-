@@ -91,6 +91,26 @@ public class MaterialControllerSpringBootTest {
 	}
 
 	@Test
+	public void testGetById() throws Exception {
+		Material gold = new Material();
+		gold.setName("gold");
+		gold.setPrice(100.1f);
+		gold.setEntryDate(new Date());
+
+		gold = materialRepository.save(gold);
+		mockMvc.perform(get("/materials/" + gold.getId())).andExpect(status().isOk())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
+				.andExpect(jsonPath("$.name").value("gold")).andExpect(jsonPath("$.price").value(100.1f))
+				.andExpect(jsonPath("$.entryDate").value(formatDateToUTC(gold.getEntryDate())));
+
+	}
+
+	@Test
+	public void testGetByIdNotFound() throws Exception {
+		mockMvc.perform(get("/materials/unknownid")).andExpect(status().isNotFound());
+	}
+
+	@Test
 	public void testCreate() throws JsonProcessingException, Exception {
 		Material material = new Material();
 		material.setName("gold");
@@ -114,7 +134,7 @@ public class MaterialControllerSpringBootTest {
 		mockMvc.perform(delete("/materials/{id}", material.getId())).andExpect(status().isNotFound());
 
 	}
-	
+
 	@Test
 	public void testDeleteWithistory() throws JsonProcessingException, Exception {
 		Material material = new Material();
@@ -123,12 +143,12 @@ public class MaterialControllerSpringBootTest {
 		material = materialRepository.save(material);
 
 		MaterialHistory mh = new MaterialHistory();
-		mh.setEntryDate(new Date(System.currentTimeMillis()-(60*60*1000)));
+		mh.setEntryDate(new Date(System.currentTimeMillis() - (60 * 60 * 1000)));
 		mh.setMaterial(material);
 		mh.setPrice(50f);
-		
+
 		materialHistoryRepository.save(mh);
-		
+
 		mockMvc.perform(delete("/materials/{id}", material.getId())).andExpect(status().isNoContent());
 
 		assertFalse(materialRepository.existsById(material.getId()));
@@ -136,7 +156,6 @@ public class MaterialControllerSpringBootTest {
 		mockMvc.perform(delete("/materials/{id}", material.getId())).andExpect(status().isNotFound());
 
 	}
-
 
 	@Test
 	public void testUpdate() throws JsonProcessingException, Exception {
@@ -150,7 +169,7 @@ public class MaterialControllerSpringBootTest {
 		Material created = materialRepository.save(material);
 		created.setPrice(200);
 		created.setEntryDate(new Date(System.currentTimeMillis() + 1000));
-		
+
 		mockMvc.perform(put("/materials/" + created.getId()).contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(created))).andExpect(status().isOk())
 				.andExpect(jsonPath("$.name").value("gold")).andExpect(jsonPath("$.price").value(200))
@@ -164,7 +183,7 @@ public class MaterialControllerSpringBootTest {
 		assertEquals(createddate, mh1.getEntryDate());
 
 	}
-	
+
 	@Test
 	public void testUpdateWithInvalidDate() throws JsonProcessingException, Exception {
 		Material material = new Material();
@@ -177,24 +196,25 @@ public class MaterialControllerSpringBootTest {
 
 		Material created = materialRepository.save(material);
 		created.setPrice(200);
-		Date currentDate = new Date(timeStampNow -5000);
+		Date currentDate = new Date(timeStampNow - 5000);
 		created.setEntryDate(currentDate);
-		
+
 		mockMvc.perform(put("/materials/" + created.getId()).contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(created))).andExpect(status().isBadRequest()).andExpect(header().exists("fault"));
+				.content(objectMapper.writeValueAsString(created))).andExpect(status().isBadRequest())
+				.andExpect(header().exists("fault"));
 
 		List<MaterialHistory> mh = materialHistoryRepository.findByMaterial(created.getId());
 
 		assertEquals(0, mh.size());
-	
 
 	}
+
 	@Test
 	public void testUpdateWithoutNewDate() throws JsonProcessingException, Exception {
 		Material material = new Material();
 		material.setName("gold");
 		material.setPrice(100.1f);
-		Date createddate = new Date(System.currentTimeMillis()-1000);
+		Date createddate = new Date(System.currentTimeMillis() - 1000);
 
 		material.setEntryDate(createddate);
 
@@ -202,7 +222,7 @@ public class MaterialControllerSpringBootTest {
 		created.setPrice(200);
 		Date currentDate = new Date(System.currentTimeMillis());
 		created.setEntryDate(null);
-		
+
 		mockMvc.perform(put("/materials/" + created.getId()).contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(created))).andExpect(status().isOk())
 				.andExpect(jsonPath("$.name").value("gold")).andExpect(jsonPath("$.price").value(200));
@@ -213,14 +233,14 @@ public class MaterialControllerSpringBootTest {
 		MaterialHistory mh1 = mh.get(0);
 		assertEquals(100.1f, mh1.getPrice());
 		assertEquals(createddate, mh1.getEntryDate());
-		
+
 		Material result = materialRepository.findById(created.getId()).get();
 		assertTrue(currentDate.toInstant().toEpochMilli() <= result.getEntryDate().toInstant().toEpochMilli());
 
 	}
-	
+
 	public static String formatDateToUTC(Date date) {
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS").withZone(ZoneId.of("UTC"));
-        return dtf.format(date.toInstant())+"+00:00";
-    }
+		return dtf.format(date.toInstant()) + "+00:00";
+	}
 }

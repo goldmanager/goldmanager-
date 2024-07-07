@@ -41,9 +41,9 @@ public class MaterialController {
 
 	@GetMapping(path = "/{id}")
 	public ResponseEntity<Material> getbyId(@PathVariable(name = "id") String id) {
-		Material result = materialService.getById(id);
-		if (result != null) {
-			return ResponseEntity.status(HttpStatus.CREATED).body(result);
+		Optional<Material> result = materialService.getById(id);
+		if (result.isPresent()) {
+			return ResponseEntity.ok(result.get());
 		}
 		return ResponseEntity.notFound().build();
 
