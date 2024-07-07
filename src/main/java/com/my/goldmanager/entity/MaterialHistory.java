@@ -6,23 +6,26 @@ import java.util.UUID;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "MATERIAL")
-public class Material {
+@Table(name = "MATERIAL_HISTORY")
+public class MaterialHistory {
 	@Id 
 	@Getter
 	@Setter
 	private String id;
 	
-	@Column
-	@Getter
+	@ManyToOne
+	@JoinColumn(name = "materialID")
 	@Setter
-	private String name;
+	@Getter
+	private Material material;
 	
 	@Column
 	@Getter

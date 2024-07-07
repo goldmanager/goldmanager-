@@ -1,7 +1,10 @@
 package com.my.goldmanager.rest;
 
 import java.util.List;
+import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,17 +19,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.my.goldmanager.entity.Material;
 import com.my.goldmanager.service.MaterialService;
+import com.my.goldmanager.service.exception.ValidationException;
 
 @RestController
 @RequestMapping("/materials")
 public class MaterialController {
-
+	private static final Logger logger = LoggerFactory.getLogger(MaterialController.class);
 	@Autowired
 	private MaterialService materialService;
 
 	@PostMapping
 	public ResponseEntity<Material> create(@RequestBody Material material) {
-		Material savedmaterial = materialService.save(material);
+		Material savedmaterial = materialService.store(material);
 		return ResponseEntity.status(HttpStatus.CREATED).body(savedmaterial);
 	}
 
@@ -44,17 +48,21 @@ public class MaterialController {
 		return ResponseEntity.notFound().build();
 
 	}
+
 	@PutMapping(path = "/{id}")
-	public ResponseEntity<Material> update(@PathVariable(name = "id") String id, @RequestBody Material material){
-		Material result = materialService.getById(id);
-		if (result != null) {
-			result.setName(material.getName());
-			result.setPrice(material.getPrice());
-			materialService.save(result);
-			return ResponseEntity.ok(result);
+	public ResponseEntity<Material> update(@PathVariable(name = "id") String id, @RequestBody Material material) {
+		try {
+			Optional<Material> result = materialService.update(id, material);
+			if (result.isPresent()) {
+				return ResponseEntity.ok(result.get());
+			}
+			return ResponseEntity.notFound().build();
+		} catch (ValidationException ve) {
+			logger.error("Validation error during updating Material", ve);
+			return ResponseEntity.badRequest().header("fault", ve.getMessage()).build();
 		}
-		return ResponseEntity.notFound().build();
 	}
+
 	@DeleteMapping(path = "/{id}")
 	public ResponseEntity<Void> delete(@PathVariable(name = "id") String id) {
 		if (materialService.deleteById(id)) {
