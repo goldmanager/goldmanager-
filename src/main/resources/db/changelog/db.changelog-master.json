@@ -152,7 +152,7 @@
                               "constraints": {
                                  "nullable": false,
                                  "foreignKeyName": "fk_item_unit",
-                                 "references": "unit(name)"
+                                 "references": "UNIT(name)"
                               }
                            }
                         }
@@ -208,6 +208,37 @@
                      ],
                      "remarks": "Material History",
                      "tableName": "MATERIAL_HISTORY"
+                  }
+               },
+               {
+                  "createTable": {
+                     "columns": [
+                        {
+                           "column": {
+                              "name": "userid",
+                              "type": "varchar(255)",
+                              "constraints": {
+                                 "primaryKey": true
+                              }
+                           }
+                        },
+                        {
+                           "column": {
+                              "name": "password",
+                              "type": "varchar(255)",
+                              "constraints": {
+                                 "nullable": false
+                              }
+                           }
+                        },
+                        {
+                           "column": {
+                              "name": "active",
+                              "type": "boolean"
+                           }
+                        }                     ],
+                     "remarks": "User logins",
+                     "tableName": "USER_LOGIN"
                   }
                },
                "addForeignKeyConstraint": {
