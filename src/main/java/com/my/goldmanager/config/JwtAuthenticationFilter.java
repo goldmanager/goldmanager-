@@ -3,11 +3,14 @@ package com.my.goldmanager.config;
 import java.io.IOException;
 import java.security.Key;
 import java.util.Collections;
-import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import com.my.goldmanager.service.AuthKeyInfoService;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Header;
@@ -17,14 +20,12 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
+@Service
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-	private final Map<String, Key> userSecretKeys;
-
-	public JwtAuthenticationFilter(Map<String, Key> userSecretKeys) {
-		this.userSecretKeys = userSecretKeys;
-	}
+ 
+	@Autowired
+	private AuthKeyInfoService authKeyInfoService;
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -38,7 +39,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 					@Override
 					public Key locate(Header header) {
 
-						return userSecretKeys.get(header.get("keyId"));
+						return authKeyInfoService.getKeyforKeyId((String) header.get("keyId"));
 					}
 				}).build().parseSignedClaims(token).getPayload();
 				String username = claims.getSubject();
