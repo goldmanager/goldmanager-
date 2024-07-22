@@ -22,8 +22,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.my.goldmanager.entity.Unit;
 import com.my.goldmanager.repository.UnitRepository;
-import com.my.goldmanager.rest.response.ErrorResponse;
 
+import com.my.goldmanager.rest.response.ErrorResponse;
 import com.my.goldmanager.service.AuthenticationService;
 import com.my.goldmanager.service.UserService;
 
@@ -96,10 +96,10 @@ public class UnitControllerSpringBootTest {
 		gramm.setName("gramm");
 		gramm.setFactor(1.0f / 31.1034768f);
 
-
 		mockMvc.perform(TestHTTPClient.doPost("/units").contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(gramm))).andExpect(status().isCreated())
 				.andExpect(jsonPath("$.name").value("gramm")).andExpect(jsonPath("$.factor").value(gramm.getFactor()));
+
 	}
 
 	@Test
@@ -152,7 +152,6 @@ public class UnitControllerSpringBootTest {
 		unit.setName("OZ");
 		unit.setFactor(1);
 		unitRepository.save(unit);
-
 
 		mockMvc.perform(TestHTTPClient.doDelete("/units/" + unit.getName())).andExpect(status().isNoContent());
 
