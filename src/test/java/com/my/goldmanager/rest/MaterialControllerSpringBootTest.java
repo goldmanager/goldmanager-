@@ -8,9 +8,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.UnsupportedEncodingException;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
@@ -126,11 +128,72 @@ public class MaterialControllerSpringBootTest {
 		Material material = new Material();
 		material.setName("gold");
 		material.setPrice(100.1f);
-		mockMvc.perform(TestHTTPClient.doPost("/materials").contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(material))).andExpect(status().isCreated())
-				.andExpect(jsonPath("$.name").value("gold")).andExpect(jsonPath("$.price").value(100.1f));
+		String body = mockMvc
+				.perform(TestHTTPClient.doPost("/materials").contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(material)))
+				.andExpect(status().isCreated()).andExpect(jsonPath("$.name").value("gold"))
+				.andExpect(jsonPath("$.price").value(100.1f)).andReturn().getResponse().getContentAsString();
+
+		Material created = objectMapper.readValue(body, Material.class);
+		List<MaterialHistory> mh = materialHistoryRepository.findByMaterial(created.getId());
+
+		assertEquals(1, mh.size());
+		MaterialHistory mh1 = mh.get(0);
+		assertEquals(created.getPrice(), mh1.getPrice());
+		assertEquals(created.getEntryDate().toInstant().toEpochMilli(), mh1.getEntryDate().toInstant().toEpochMilli());
 	}
 
+	@Test
+	void testCreateAndUpdateWithMaterialHistory() throws JsonProcessingException, UnsupportedEncodingException, Exception {
+		Material material = new Material();
+		material.setName("gold");
+		material.setPrice(100.1f);
+		
+		
+		String body = mockMvc
+				.perform(TestHTTPClient.doPost("/materials").contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(material)))
+				.andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+		
+		material = objectMapper.readValue(body, Material.class);
+		List<Material> expected = new LinkedList<>();
+		
+		expected.add(material);
+		
+		Material updated = new Material();
+		updated.setId(material.getId());
+		updated.setName(material.getName());
+		updated.setPrice(200);
+		body = mockMvc
+				.perform(TestHTTPClient.doPut("/materials/" + updated.getId()).contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(updated)))
+				.andExpect(status().isOk()).andReturn()
+				.getResponse().getContentAsString();
+		
+		expected.add(objectMapper.readValue(body, Material.class));
+
+		updated.setPrice(300);
+		body = mockMvc
+				.perform(TestHTTPClient.doPut("/materials/" + updated.getId()).contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(updated)))
+				.andExpect(status().isOk()).andReturn()
+				.getResponse().getContentAsString();
+		
+		expected.add(objectMapper.readValue(body, Material.class));
+		List<MaterialHistory> mh = materialHistoryRepository.findByMaterial(material.getId()).reversed();
+
+		assertEquals(expected.size(), mh.size());
+		
+		for (int i = 0; i < expected.size();i++) {
+			Material expectedMaterial = expected.get(i);
+			MaterialHistory materialHistory = mh.get(i);
+			
+			assertEquals(expectedMaterial.getName(), materialHistory.getMaterial().getName());
+			assertEquals(expectedMaterial.getPrice(), materialHistory.getPrice());
+			assertEquals(expectedMaterial.getEntryDate(), materialHistory.getEntryDate());
+		};
+	}
+	
 	@Test
 	public void testDelete() throws JsonProcessingException, Exception {
 		Material material = new Material();
@@ -181,17 +244,21 @@ public class MaterialControllerSpringBootTest {
 		created.setPrice(200);
 		created.setEntryDate(new Date(System.currentTimeMillis() + 1000));
 
-		mockMvc.perform(TestHTTPClient.doPut("/materials/" + created.getId()).contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(created))).andExpect(status().isOk())
-				.andExpect(jsonPath("$.name").value("gold")).andExpect(jsonPath("$.price").value(200))
-				.andExpect(jsonPath("$.entryDate").value(formatDateToUTC(created.getEntryDate())));
+		String body = mockMvc
+				.perform(TestHTTPClient.doPut("/materials/" + created.getId()).contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(created)))
+				.andExpect(status().isOk()).andExpect(jsonPath("$.name").value("gold"))
+				.andExpect(jsonPath("$.price").value(200))
+				.andExpect(jsonPath("$.entryDate").value(formatDateToUTC(created.getEntryDate()))).andReturn()
+				.getResponse().getContentAsString();
 
+		created = objectMapper.readValue(body, Material.class);
 		List<MaterialHistory> mh = materialHistoryRepository.findByMaterial(created.getId());
 
 		assertEquals(1, mh.size());
 		MaterialHistory mh1 = mh.get(0);
-		assertEquals(100.1f, mh1.getPrice());
-		assertEquals(createddate, mh1.getEntryDate());
+		assertEquals(created.getPrice(), mh1.getPrice());
+		assertEquals(created.getEntryDate(), mh1.getEntryDate());
 
 	}
 
@@ -238,16 +305,19 @@ public class MaterialControllerSpringBootTest {
 		Date currentDate = new Date(System.currentTimeMillis());
 		created.setEntryDate(null);
 
-		mockMvc.perform(TestHTTPClient.doPut("/materials/" + created.getId()).contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(created))).andExpect(status().isOk())
-				.andExpect(jsonPath("$.name").value("gold")).andExpect(jsonPath("$.price").value(200));
+		String body = mockMvc
+				.perform(TestHTTPClient.doPut("/materials/" + created.getId()).contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(created)))
+				.andExpect(status().isOk()).andExpect(jsonPath("$.name").value("gold"))
+				.andExpect(jsonPath("$.price").value(200)).andReturn().getResponse().getContentAsString();
 
+		created = objectMapper.readValue(body, Material.class);
 		List<MaterialHistory> mh = materialHistoryRepository.findByMaterial(created.getId());
 
 		assertEquals(1, mh.size());
 		MaterialHistory mh1 = mh.get(0);
-		assertEquals(100.1f, mh1.getPrice());
-		assertEquals(createddate, mh1.getEntryDate());
+		assertEquals(created.getPrice(), mh1.getPrice());
+		assertEquals(created.getEntryDate(), mh1.getEntryDate());
 
 		Material result = materialRepository.findById(created.getId()).get();
 		assertTrue(currentDate.toInstant().toEpochMilli() <= result.getEntryDate().toInstant().toEpochMilli());

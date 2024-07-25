@@ -33,7 +33,10 @@ public class MaterialService {
 		if (material.getEntryDate() == null) {
 			material.setEntryDate(new Date());
 		}
-		return materialRepository.save(material);
+
+		material = materialRepository.save(material);
+		saveMaterialHistory(material);
+		return material;
 	}
 
 	public Optional<Material> update(String id, Material material) throws ValidationException {
@@ -48,16 +51,20 @@ public class MaterialService {
 			if (material.getEntryDate() == null) {
 				material.setEntryDate(new Date());
 			}
-			MaterialHistory mh = new MaterialHistory();
-			mh.setPrice(old.getPrice());
-			mh.setEntryDate(old.getEntryDate());
-
 			material = materialRepository.save(material);
-			mh.setMaterial(material);
-			materialHistoryRepository.save(mh);
+			saveMaterialHistory(material);
 			return Optional.of(material);
 		}
 		return Optional.empty();
+	}
+
+	private void saveMaterialHistory(Material material) {
+		MaterialHistory mh = new MaterialHistory();
+		mh.setPrice(material.getPrice());
+		mh.setEntryDate(material.getEntryDate());
+		mh.setMaterial(material);
+		materialHistoryRepository.save(mh);
+
 	}
 
 	public List<Material> list() {
