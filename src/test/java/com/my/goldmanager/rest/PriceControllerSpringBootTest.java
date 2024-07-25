@@ -344,7 +344,7 @@ public class PriceControllerSpringBootTest {
 		for (Item item : items) {
 			result += getPrice(item);
 		}
-		return result;
+		return new BigDecimal(result).setScale(2, RoundingMode.HALF_DOWN).floatValue();
 	}
 
 	private float getPrice(Item item) {

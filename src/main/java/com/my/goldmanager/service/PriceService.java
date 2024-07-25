@@ -104,7 +104,7 @@ public class PriceService {
 
 		items.stream().forEach(item -> result.getPrices().add(calculatePrice(item)));
 		calculateSummaryPrice(result);
-
+		
 		return result;
 	}
 
@@ -119,6 +119,7 @@ public class PriceService {
 	private static void calculateSummaryPrice(PriceList priceList) {
 
 		priceList.getPrices().stream().forEach(p -> priceList.setTotalPrice(priceList.getTotalPrice() + p.getPrice()));
+		priceList.setTotalPrice(new BigDecimal(priceList.getTotalPrice()).setScale(2, RoundingMode.HALF_DOWN).floatValue());
 	}
 
 	private static Price calculatePrice(Item item) {

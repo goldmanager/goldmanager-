@@ -391,7 +391,8 @@ public class PriceHistoryControllerSpringBootTest {
 		for (Item item : items) {
 			result += getPrice(item, materialPrice);
 		}
-		return result;
+		return new BigDecimal(result).setScale(2, RoundingMode.HALF_DOWN).floatValue();
+		
 	}
 
 	private float getPrice(Item item, float materialPrice) {
