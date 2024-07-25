@@ -237,7 +237,7 @@ public class PriceHistoryControllerSpringBootTest {
 
 					assertNotNull(ph.getPriceList());
 					assertEquals(items.size(), ph.getPriceList().getPrices().size());
-					assertEquals(totalPrice, ph.getPriceList().getTotalPrize());
+					assertEquals(totalPrice, ph.getPriceList().getTotalPrice());
 					for (int currentPrice = 0; currentPrice < items.size(); currentPrice++) {
 						Price actualPrice = ph.getPriceList().getPrices().get(currentPrice);
 						assertEquals(getPrice(items.get(currentPrice), mh.getPrice()), actualPrice.getPrice());
@@ -282,7 +282,7 @@ public class PriceHistoryControllerSpringBootTest {
 
 					assertNotNull(ph.getPriceList());
 					assertEquals(items.size(), ph.getPriceList().getPrices().size());
-					assertEquals(totalPrice, ph.getPriceList().getTotalPrize());
+					assertEquals(totalPrice, ph.getPriceList().getTotalPrice());
 					for (int currentPrice = 0; currentPrice < items.size(); currentPrice++) {
 						Price actualPrice = ph.getPriceList().getPrices().get(currentPrice);
 						assertEquals(getPrice(items.get(currentPrice), mh.getPrice()), actualPrice.getPrice());
@@ -330,7 +330,7 @@ public class PriceHistoryControllerSpringBootTest {
 
 					assertNotNull(ph.getPriceList());
 					assertEquals(items.size(), ph.getPriceList().getPrices().size());
-					assertEquals(totalPrice, ph.getPriceList().getTotalPrize());
+					assertEquals(totalPrice, ph.getPriceList().getTotalPrice());
 					for (int currentPrice = 0; currentPrice < items.size(); currentPrice++) {
 						Price actualPrice = ph.getPriceList().getPrices().get(currentPrice);
 						assertEquals(getPrice(items.get(currentPrice), mh.getPrice()), actualPrice.getPrice());
@@ -369,7 +369,7 @@ public class PriceHistoryControllerSpringBootTest {
 
 				assertNotNull(ph.getPriceList());
 				assertEquals(items.size(), ph.getPriceList().getPrices().size());
-				assertEquals(totalPrice, ph.getPriceList().getTotalPrize());
+				assertEquals(totalPrice, ph.getPriceList().getTotalPrice());
 				for (int currentPrice = 0; currentPrice < items.size(); currentPrice++) {
 					Price actualPrice = ph.getPriceList().getPrices().get(currentPrice);
 					assertEquals(getPrice(items.get(currentPrice), mh.getPrice()), actualPrice.getPrice());

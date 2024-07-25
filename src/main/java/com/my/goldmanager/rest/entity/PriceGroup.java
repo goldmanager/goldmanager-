@@ -11,7 +11,7 @@ public class PriceGroup {
 	private List<Price> prices;
 	@Getter
 	@Setter
-	private float totalPrize;
+	private float totalPrice;
 	@Getter
 	@Setter
 	private float amount;

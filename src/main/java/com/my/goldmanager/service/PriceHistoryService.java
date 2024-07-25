@@ -52,7 +52,7 @@ public class PriceHistoryService {
 					price.setItem(item);
 					price.setPrice(PriceCalculatorUtil.claculatePrice(item, history.getPrice()));
 					priceList.getPrices().add(price);
-					priceList.setTotalPrize(priceList.getTotalPrize() + price.getPrice());
+					priceList.setTotalPrice(priceList.getTotalPrice() + price.getPrice());
 				}
 			}
 		}

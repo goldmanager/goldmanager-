@@ -90,9 +90,9 @@ public class PriceService {
 		Price price = calculatePrice(item);
 
 		priceGroup.getPrices().add(price);
-		BigDecimal totalPrice = new BigDecimal(priceGroup.getTotalPrize() + price.getPrice()).setScale(2,
+		BigDecimal totalPrice = new BigDecimal(priceGroup.getTotalPrice() + price.getPrice()).setScale(2,
 				RoundingMode.HALF_DOWN);
-		priceGroup.setTotalPrize(totalPrice.floatValue());
+		priceGroup.setTotalPrice(totalPrice.floatValue());
 		BigDecimal amount = new BigDecimal(priceGroup.getAmount() + (item.getAmount() * item.getUnit().getFactor()))
 				.setScale(2, RoundingMode.HALF_DOWN);
 		priceGroup.setAmount(amount.floatValue());
@@ -118,7 +118,7 @@ public class PriceService {
 
 	private static void calculateSummaryPrice(PriceList priceList) {
 
-		priceList.getPrices().stream().forEach(p -> priceList.setTotalPrize(priceList.getTotalPrize() + p.getPrice()));
+		priceList.getPrices().stream().forEach(p -> priceList.setTotalPrice(priceList.getTotalPrice() + p.getPrice()));
 	}
 
 	private static Price calculatePrice(Item item) {
