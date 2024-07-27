@@ -11,7 +11,7 @@ COPY . .
 RUN gradle clean bootJar
 
 # Use an official OpenJDK 21 image to run the application
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:21-jre-alpine
 
 # Copy the built jar from the build stage
 COPY --from=build /home/gradle/project/build/libs/*.jar app.jar
