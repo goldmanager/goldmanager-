@@ -1,5 +1,8 @@
 package com.my.goldmanager.config;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -7,12 +10,21 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOrigins("http://localhost:8081","http://localhost.localdomain:8081") 
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("*")
-                .allowCredentials(true);
-    }
+	private static final String ALLOWEDORIGINS = "ALLOWEDORIGINS";
+	private static final String[] allowedOriginsDefault = { "http://localhost:8081",
+			"http://localhost.localdomain:8081" };
+
+	@Override
+	public void addCorsMappings(CorsRegistry registry) {
+		String allowedOrigins = SystemEnvUtil.readVariable(ALLOWEDORIGINS);
+		String[] allowedOriginsArray;
+		if (allowedOrigins != null && !allowedOrigins.isBlank()) {
+			allowedOriginsArray = List.of(allowedOrigins.split("[,]")).stream().map(s -> s.trim())
+					.collect(Collectors.toList()).toArray(new String[] {});
+		} else {
+			allowedOriginsArray = allowedOriginsDefault;
+		}
+		registry.addMapping("/**").allowedOrigins(allowedOriginsArray)
+				.allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS").allowedHeaders("*").allowCredentials(true);
+	}
 }
