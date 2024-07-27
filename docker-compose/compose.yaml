@@ -27,6 +27,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: mypassword
       APP_DEFAULT_USER: admin
       APP_DEFAULT_PASSWORD: adminpassword!
+      ALLOWEDORIGINS: http://localhost:9090
     ports:
       - "8080:8080"
     depends_on:
@@ -36,9 +37,9 @@ services:
     image: docker.io/fg1212/goldmanager-ui:latestsnapshot
     container_name: goldmanager-ui
     environment:
-      VUE_APP_API_BASE_URL: http://goldmanager:8080
+      VUE_APP_API_BASE_URL: http://localhost:8080
     ports:
-      - "80:80"
+      - "9090:8080"
     depends_on:
       - goldmanager
 
