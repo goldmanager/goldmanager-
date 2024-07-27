@@ -18,8 +18,8 @@ services:
       timeout: 5s
       retries: 10
 
-  app:
-    image: docker.io/fg1212/goldmanager:latest
+  goldmanager:
+    image: docker.io/fg1212/goldmanager:latestsnapshot
     container_name: goldmanager
     environment:
       SPRING_DATASOURCE_URL: jdbc:mariadb://db:3306/mydatabase
@@ -31,6 +31,16 @@ services:
       - "8080:8080"
     depends_on:
       - db
+
+  goldmanagerui:
+    image: docker.io/fg1212/goldmanager-ui:latestsnapshot
+    container_name: goldmanager-ui
+    environment:
+      VUE_APP_API_BASE_URL: http://goldmanager:8080
+    ports:
+      - "80:80"
+    depends_on:
+      - goldmanager
 
 volumes:
   db-data:

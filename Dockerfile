@@ -8,7 +8,7 @@ WORKDIR /home/gradle/project
 COPY . .
 
 # Run the Gradle build task
-RUN gradle build
+RUN gradle clean bootJar
 
 # Use an official OpenJDK 21 image to run the application
 FROM eclipse-temurin:21-jre
