@@ -18,7 +18,7 @@ services:
       retries: 10
 
   goldmanager:
-    image: docker.io/fg1212/goldmanager:latestsnapshot
+    image: docker.io/fg1212/goldmanager:0.3.0
     container_name: goldmanager
     restart: unless-stopped
     environment:
@@ -34,7 +34,7 @@ services:
       - db
 
   goldmanagerui:
-    image: docker.io/fg1212/goldmanager-ui:latestsnapshot
+    image: docker.io/fg1212/goldmanager-ui:0.3.0
     container_name: goldmanager-ui
     restart: unless-stopped
     environment:
