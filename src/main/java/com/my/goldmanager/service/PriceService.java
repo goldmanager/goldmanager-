@@ -107,7 +107,7 @@ public class PriceService {
 		BigDecimal totalPrice = new BigDecimal(priceGroup.getTotalPrice() + price.getPrice()).setScale(2,
 				RoundingMode.HALF_DOWN);
 		priceGroup.setTotalPrice(totalPrice.floatValue());
-		BigDecimal amount = new BigDecimal(priceGroup.getAmount() + (item.getAmount() * item.getUnit().getFactor()))
+		BigDecimal amount = new BigDecimal( priceGroup.getAmount() + (Float.valueOf(item.getItemCount()) * item.getAmount() * item.getUnit().getFactor()))
 				.setScale(2, RoundingMode.HALF_DOWN);
 		priceGroup.setAmount(amount.floatValue());
 	}

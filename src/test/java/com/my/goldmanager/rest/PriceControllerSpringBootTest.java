@@ -336,7 +336,7 @@ public class PriceControllerSpringBootTest {
 	private float getAmmount(List<Item> items) {
 		float result = 0;
 		for (Item item : items) {
-			result += item.getAmount() * item.getUnit().getFactor();
+			result +=  Float.valueOf(item.getItemCount())* item.getAmount() * item.getUnit().getFactor();
 		}
 		BigDecimal bd = new BigDecimal(result).setScale(2, RoundingMode.HALF_DOWN);
 		return bd.floatValue();
