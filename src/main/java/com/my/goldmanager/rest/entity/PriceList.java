@@ -12,7 +12,7 @@ public class PriceList {
 	
 	@Getter
 	@Setter
-	private float totalPrize;
+	private float totalPrice;
 	
 
 }

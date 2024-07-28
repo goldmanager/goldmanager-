@@ -20,8 +20,8 @@ public class UserInitializationRunner implements ApplicationRunner {
 
 	@Override
 	public void run(ApplicationArguments args) throws Exception {
-		String defaultUser = readVariable(ENV_DEFAULTUSER);
-		String defaultPassword = readVariable(ENV_DEFAULTPASSWORD);
+		String defaultUser = SystemEnvUtil.readVariable(ENV_DEFAULTUSER);
+		String defaultPassword = SystemEnvUtil.readVariable(ENV_DEFAULTPASSWORD);
 		if (defaultUser != null && defaultPassword != null) {
 			if (userService.countUsers() > 0) {
 				logger.info("Users existing skipping creation of default user");
@@ -34,10 +34,5 @@ public class UserInitializationRunner implements ApplicationRunner {
 
 	}
 
-	private static String readVariable(String name) {
-		if (System.getenv(name) != null) {
-			return System.getenv(name);
-		}
-		return System.getProperty(name);
-	}
+	
 }

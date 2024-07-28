@@ -1,5 +1,7 @@
 package com.my.goldmanager.service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -52,8 +54,9 @@ public class PriceHistoryService {
 					price.setItem(item);
 					price.setPrice(PriceCalculatorUtil.claculatePrice(item, history.getPrice()));
 					priceList.getPrices().add(price);
-					priceList.setTotalPrize(priceList.getTotalPrize() + price.getPrice());
+					priceList.setTotalPrice(priceList.getTotalPrice() + price.getPrice());
 				}
+				priceList.setTotalPrice(new BigDecimal(priceList.getTotalPrice()).setScale(2, RoundingMode.HALF_DOWN).floatValue());
 			}
 		}
 		return Optional.of(result);

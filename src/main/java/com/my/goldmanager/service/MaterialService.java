@@ -17,16 +17,26 @@ import com.my.goldmanager.service.exception.ValidationException;
 
 @Service
 public class MaterialService {
-	private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS").withZone(ZoneId.of("UTC"));
-	
+	private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")
+			.withZone(ZoneId.of("UTC"));
+
 	@Autowired
 	private MaterialRepository materialRepository;
 	@Autowired
 	private MaterialHistoryRepository materialHistoryRepository;
 
-	public Material store(Material material) {
+	public Material store(Material material) throws ValidationException {
 		material.setId(null);
-		return materialRepository.save(material);
+		if (material.getName() == null || material.getName().isBlank()) {
+			throw new ValidationException("Material name is mandatory. ");
+		}
+		if (material.getEntryDate() == null) {
+			material.setEntryDate(new Date());
+		}
+
+		material = materialRepository.save(material);
+		saveMaterialHistory(material);
+		return material;
 	}
 
 	public Optional<Material> update(String id, Material material) throws ValidationException {
@@ -38,19 +48,23 @@ public class MaterialService {
 					|| material.getEntryDate().equals(old.getEntryDate()))) {
 				throw new ValidationException("EntryDate must be after " + formatDateToUTC(old.getEntryDate()));
 			}
-			if(material.getEntryDate() == null) {
+			if (material.getEntryDate() == null) {
 				material.setEntryDate(new Date());
 			}
-			MaterialHistory mh = new MaterialHistory();
-			mh.setPrice(old.getPrice());
-			mh.setEntryDate(old.getEntryDate());
-
 			material = materialRepository.save(material);
-			mh.setMaterial(material);
-			materialHistoryRepository.save(mh);
+			saveMaterialHistory(material);
 			return Optional.of(material);
 		}
 		return Optional.empty();
+	}
+
+	private void saveMaterialHistory(Material material) {
+		MaterialHistory mh = new MaterialHistory();
+		mh.setPrice(material.getPrice());
+		mh.setEntryDate(material.getEntryDate());
+		mh.setMaterial(material);
+		materialHistoryRepository.save(mh);
+
 	}
 
 	public List<Material> list() {
@@ -68,8 +82,8 @@ public class MaterialService {
 		}
 		return false;
 	}
-	
+
 	private static String formatDateToUTC(Date date) {
-        return dtf.format(date.toInstant())+"+00:00";
-    }
+		return dtf.format(date.toInstant()) + "+00:00";
+	}
 }

@@ -32,19 +32,19 @@ public class UserService {
 	 */
 	public void create(String username, String password) throws ValidationException {
 
-		if (username == null || username.isBlank()) {
-			throw new ValidationException("Username is mandatory.");
+		if (username == null || username.isBlank() || username.trim().contains(" ")) {
+			throw new ValidationException("Username is mandatory and must not contain spaces.");
 		}
-		if (password == null || password.isBlank()) {
-			throw new ValidationException("Password is mandatory.");
+		if (password == null || password.isBlank() || password.trim().contains(" ")) {
+			throw new ValidationException("Password is mandatory and must not contain spaces.");
 		}
-		if (userLoginRepository.existsById(username)) {
-			throw new ValidationException("Username '" + username + "' already exists.");
+		if (userLoginRepository.existsById(username.trim())) {
+			throw new ValidationException("Username '" + username.trim() + "' already exists.");
 		}
 		UserLogin userLogin = new UserLogin();
 		userLogin.setActive(true);
-		userLogin.setPassword(passwordEncoder.encode(password));
-		userLogin.setUserid(username);
+		userLogin.setPassword(passwordEncoder.encode(password.trim()));
+		userLogin.setUserid(username.trim());
 		userLoginRepository.save(userLogin);
 
 	}

@@ -273,7 +273,7 @@ public class UserServiceControllerSpringBootTest {
 				.andReturn().getResponse().getContentAsString();
 
 		ErrorResponse errorResponse = objectMapper.readValue(body, ErrorResponse.class);
-		assertEquals("Username is mandatory.", errorResponse.getMessage());
+		assertEquals("Username is mandatory and must not contain spaces.", errorResponse.getMessage());
 		assertEquals(400, errorResponse.getStatus());
 
 		createUserRequest = new CreateUserRequest();
@@ -287,7 +287,7 @@ public class UserServiceControllerSpringBootTest {
 				.andReturn().getResponse().getContentAsString();
 
 		errorResponse = objectMapper.readValue(body, ErrorResponse.class);
-		assertEquals("Username is mandatory.", errorResponse.getMessage());
+		assertEquals("Username is mandatory and must not contain spaces.", errorResponse.getMessage());
 		assertEquals(400, errorResponse.getStatus());
 	}
 
@@ -305,7 +305,7 @@ public class UserServiceControllerSpringBootTest {
 				.andReturn().getResponse().getContentAsString();
 
 		ErrorResponse errorResponse = objectMapper.readValue(body, ErrorResponse.class);
-		assertEquals("Password is mandatory.", errorResponse.getMessage());
+		assertEquals("Password is mandatory and must not contain spaces.", errorResponse.getMessage());
 		assertEquals(400, errorResponse.getStatus());
 
 		createUserRequest = new CreateUserRequest();
@@ -319,7 +319,7 @@ public class UserServiceControllerSpringBootTest {
 				.andReturn().getResponse().getContentAsString();
 
 		errorResponse = objectMapper.readValue(body, ErrorResponse.class);
-		assertEquals("Password is mandatory.", errorResponse.getMessage());
+		assertEquals("Password is mandatory and must not contain spaces.", errorResponse.getMessage());
 		assertEquals(400, errorResponse.getStatus());
 	}
 
