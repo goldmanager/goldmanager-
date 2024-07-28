@@ -54,14 +54,13 @@ public class PriceHistoryControllerSpringBootTest {
 
 	private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
 			.withZone(ZoneId.of("UTC"));
-	
+
 	@Autowired
 	private UserService userService;
 
 	@Autowired
 	private AuthenticationService authenticationService;
 
-	
 	@Autowired
 	private UnitRepository unitRepository;
 
@@ -97,7 +96,7 @@ public class PriceHistoryControllerSpringBootTest {
 	public void setUp() {
 
 		TestHTTPClient.setup(userService, authenticationService);
-		
+
 		Unit oz = new Unit();
 
 		oz.setFactor(1.0f);
@@ -149,6 +148,8 @@ public class PriceHistoryControllerSpringBootTest {
 			for (int i = 0; i < numberOftems; i++) {
 				Item item = new Item();
 				item.setName(m.getName() + " Item " + i);
+				int itemCount = rand.nextInt(5);
+				item.setItemCount(itemCount > 0 ? itemCount : 1);
 				item.setAmount(rand.nextFloat(0.5f, 5.1f) + 0.1f);
 				item.setItemType(itemType);
 				item.setUnit(oz);
@@ -176,7 +177,6 @@ public class PriceHistoryControllerSpringBootTest {
 		testForStartOrEndDate(materials, false);
 
 	}
-	
 
 	@Test
 	public void testListAllforMaterialInRange() throws Exception {
@@ -208,14 +208,15 @@ public class PriceHistoryControllerSpringBootTest {
 		for (Material material : materials) {
 
 			List<MaterialHistory> expectedMhs = materialHistoryRepository.findByMaterial(material.getId()).reversed();
-		
+
 			for (int currentMHNo = 0; currentMHNo < expectedMhs.size(); currentMHNo++) {
 
 				MaterialHistory currentMH = expectedMhs.get(currentMHNo);
 				MaterialHistory lastMH = expectedMhs.getLast();
 				String body = mockMvc
-						.perform(TestHTTPClient.doGet("/priceHistory/" + material.getId() + "?startDate=" + 
-							 dateFormatter.format(currentMH.getEntryDate().toInstant())+"&endDate="+dateFormatter.format(lastMH.getEntryDate().toInstant())))
+						.perform(TestHTTPClient.doGet("/priceHistory/" + material.getId() + "?startDate="
+								+ dateFormatter.format(currentMH.getEntryDate().toInstant()) + "&endDate="
+								+ dateFormatter.format(lastMH.getEntryDate().toInstant())))
 						.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
 						.andReturn().getResponse().getContentAsString();
 
@@ -225,7 +226,7 @@ public class PriceHistoryControllerSpringBootTest {
 				List<Item> items = itemRepository.findByMaterialId(material.getId());
 				int current = 0;
 				List<PriceHistory> priceHistories = priceHistoryList.getPriceHistories().reversed();
-				
+
 				while (current < priceHistories.size()) {
 
 					MaterialHistory mh = expectedMhs.get(current + currentMHNo);
@@ -253,24 +254,25 @@ public class PriceHistoryControllerSpringBootTest {
 		for (Material material : materials) {
 
 			List<MaterialHistory> expectedMhs = materialHistoryRepository.findByMaterial(material.getId()).reversed();
-		
+
 			for (int currentMHNo = 0; currentMHNo < expectedMhs.size(); currentMHNo++) {
 
 				MaterialHistory firstMH = expectedMhs.getFirst();
 				MaterialHistory currentMH = expectedMhs.get(currentMHNo);
 				String body = mockMvc
-						.perform(TestHTTPClient.doGet("/priceHistory/" + material.getId() + "?startDate=" + 
-							 dateFormatter.format(firstMH.getEntryDate().toInstant())+"&endDate="+dateFormatter.format(currentMH.getEntryDate().toInstant())))
+						.perform(TestHTTPClient.doGet("/priceHistory/" + material.getId() + "?startDate="
+								+ dateFormatter.format(firstMH.getEntryDate().toInstant()) + "&endDate="
+								+ dateFormatter.format(currentMH.getEntryDate().toInstant())))
 						.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
 						.andReturn().getResponse().getContentAsString();
 
 				PriceHistoryList priceHistoryList = objectMapper.readValue(body, PriceHistoryList.class);
-				assertEquals(currentMHNo+1, priceHistoryList.getPriceHistories().size());
+				assertEquals(currentMHNo + 1, priceHistoryList.getPriceHistories().size());
 
 				List<Item> items = itemRepository.findByMaterialId(material.getId());
 				int current = 0;
 				List<PriceHistory> priceHistories = priceHistoryList.getPriceHistories().reversed();
-				
+
 				while (current < priceHistories.size()) {
 
 					MaterialHistory mh = expectedMhs.get(current);
@@ -292,6 +294,7 @@ public class PriceHistoryControllerSpringBootTest {
 			}
 		}
 	}
+
 	private void testForStartOrEndDate(List<Material> materials, boolean byStartdate)
 			throws UnsupportedEncodingException, Exception, JsonProcessingException, JsonMappingException {
 		for (Material material : materials) {
@@ -305,8 +308,9 @@ public class PriceHistoryControllerSpringBootTest {
 				MaterialHistory currentmh = expectedMhs.get(currentMHNo);
 
 				String body = mockMvc
-						.perform(TestHTTPClient.doGet("/priceHistory/" + material.getId() + "?" + (byStartdate ? "startDate" : "endDate")
-								+ "=" + dateFormatter.format(currentmh.getEntryDate().toInstant())))
+						.perform(TestHTTPClient.doGet(
+								"/priceHistory/" + material.getId() + "?" + (byStartdate ? "startDate" : "endDate")
+										+ "=" + dateFormatter.format(currentmh.getEntryDate().toInstant())))
 						.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
 						.andReturn().getResponse().getContentAsString();
 
@@ -346,9 +350,9 @@ public class PriceHistoryControllerSpringBootTest {
 		List<Material> materials = materialRepository.findAll();
 		for (Material material : materials) {
 
-			String body = mockMvc.perform(TestHTTPClient.doGet("/priceHistory/" + material.getId())).andExpect(status().isOk())
-					.andExpect(content().contentType(MediaType.APPLICATION_JSON)).andReturn().getResponse()
-					.getContentAsString();
+			String body = mockMvc.perform(TestHTTPClient.doGet("/priceHistory/" + material.getId()))
+					.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON)).andReturn()
+					.getResponse().getContentAsString();
 
 			PriceHistoryList priceHistoryList = objectMapper.readValue(body, PriceHistoryList.class);
 
@@ -392,13 +396,13 @@ public class PriceHistoryControllerSpringBootTest {
 			result += getPrice(item, materialPrice);
 		}
 		return new BigDecimal(result).setScale(2, RoundingMode.HALF_DOWN).floatValue();
-		
+
 	}
 
 	private float getPrice(Item item, float materialPrice) {
 
-		BigDecimal price = new BigDecimal(
-				item.getAmount() * item.getUnit().getFactor() * item.getItemType().getModifier() * materialPrice)
+		BigDecimal price = new BigDecimal(Float.valueOf(item.getItemCount()) * item.getAmount()
+				* item.getUnit().getFactor() * item.getItemType().getModifier() * materialPrice)
 				.setScale(2, RoundingMode.HALF_DOWN);
 		return price.floatValue();
 

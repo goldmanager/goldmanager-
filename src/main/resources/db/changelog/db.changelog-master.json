@@ -266,6 +266,29 @@
                }
             ]
          }
+      },
+      {      "changeSet": {
+            "id": "v3",
+            "author": "fg",
+            "changes": [
+
+               "addColumn": {
+                  "columns": [
+                     {
+                        "column": {
+                           "name": "itemcount",
+                           "type": "integer",
+                           "defaultValue": 1,
+                           "constraints": {
+                              "nullable": false
+                           }
+                        }
+                     }
+                  ],
+                  "tableName": "ITEM"
+               }
+            ]
+         }
       }
    ]
 }

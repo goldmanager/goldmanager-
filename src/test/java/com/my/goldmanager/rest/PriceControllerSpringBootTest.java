@@ -105,6 +105,7 @@ public class PriceControllerSpringBootTest {
 		fineGold999 = itemTypeRepository.save(fineGold999);
 
 		ItemType gold585 = new ItemType();
+		
 		gold585.setMaterial(gold);
 		gold585.setModifier(0.585f / 0.999f);
 		gold585.setName("Bar Gold 0.585");
@@ -123,6 +124,7 @@ public class PriceControllerSpringBootTest {
 		item.setName("1 OZ Bar");
 		item.setItemType(fineGold999);
 		item.setAmount(1);
+		item.setItemCount(2);
 		item.setUnit(oz);
 
 		item = itemRepository.save(item);
@@ -132,6 +134,7 @@ public class PriceControllerSpringBootTest {
 		item.setName("1/2 OZ Bar");
 		item.setItemType(fineGold999);
 		item.setAmount(0.5f);
+		item.setItemCount(3);
 		item.setUnit(oz);
 		item = itemRepository.save(item);
 		items.add(item);
@@ -348,7 +351,7 @@ public class PriceControllerSpringBootTest {
 	}
 
 	private float getPrice(Item item) {
-		BigDecimal price = new BigDecimal(item.getAmount() * item.getUnit().getFactor()
+		BigDecimal price = new BigDecimal( Float.valueOf(item.getItemCount())* item.getAmount() * item.getUnit().getFactor()
 				* item.getItemType().getModifier() * item.getItemType().getMaterial().getPrice())
 				.setScale(2, RoundingMode.HALF_DOWN);
 		return price.floatValue();

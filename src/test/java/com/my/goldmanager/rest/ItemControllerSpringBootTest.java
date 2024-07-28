@@ -131,6 +131,7 @@ public class ItemControllerSpringBootTest {
 
 		Item goldbar1oz = new Item();
 		goldbar1oz.setAmount(1);
+		goldbar1oz.setItemCount(1);
 		goldbar1oz.setUnit(oz);
 		goldbar1oz.setName("1 oz Goldbar");
 		goldbar1oz.setItemType(goldBar);
@@ -140,6 +141,7 @@ public class ItemControllerSpringBootTest {
 
 		Item silverbar1oz = new Item();
 		silverbar1oz.setAmount(1);
+		silverbar1oz.setItemCount(1);
 		silverbar1oz.setUnit(oz);
 		silverbar1oz.setName("1 oz Silverbar");
 		silverbar1oz.setItemType(silverBar);
