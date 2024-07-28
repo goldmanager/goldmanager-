@@ -28,4 +28,8 @@ public class Price {
 	@Getter
 	@Setter
 	private float price;
+	
+	@Getter
+	@Setter
+	private float priceTotal;
 }

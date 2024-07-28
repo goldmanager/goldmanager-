@@ -22,11 +22,31 @@ import com.my.goldmanager.entity.Item;
 public class PriceCalculatorUtil {
 
 	private PriceCalculatorUtil() {
-		//Static class
+		// Static class
 	}
-	public static float claculatePrice(Item item, float materialPrice) {
-		BigDecimal price = new BigDecimal( Float.valueOf(item.getItemCount()) * item.getAmount() * item.getUnit().getFactor() * item.getItemType().getModifier()
-				* materialPrice).setScale(2, RoundingMode.HALF_DOWN);
+
+	/**
+	 * Calculate Single price of the provided Item
+	 * 
+	 * @param item
+	 * @param materialPrice
+	 * @return
+	 */
+	public static float calculateSingleItemPrice(Item item, float materialPrice) {
+		BigDecimal price = new BigDecimal(
+				item.getAmount() * item.getUnit().getFactor() * item.getItemType().getModifier() * materialPrice)
+				.setScale(2, RoundingMode.HALF_DOWN);
 		return price.floatValue();
+	}
+
+	/**
+	 * Calculates the price regarding the itemCount
+	 * @param item
+	 * @param materialPrice
+	 * @return
+	 */
+	public static float calculateTotalItemPrice(Item item, float materialPrice) {
+		return new BigDecimal(calculateSingleItemPrice(item, materialPrice))
+				.multiply(new BigDecimal(item.getItemCount())).setScale(2, RoundingMode.HALF_DOWN).floatValue();
 	}
 }

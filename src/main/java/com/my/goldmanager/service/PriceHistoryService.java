@@ -66,7 +66,8 @@ public class PriceHistoryService {
 				for (Item item : items) {
 					Price price = new Price();
 					price.setItem(item);
-					price.setPrice(PriceCalculatorUtil.claculatePrice(item, history.getPrice()));
+					price.setPrice(PriceCalculatorUtil.calculateSingleItemPrice(item, history.getPrice()));
+					price.setPriceTotal(PriceCalculatorUtil.calculateTotalItemPrice(item, history.getPrice()));
 					priceList.getPrices().add(price);
 					priceList.setTotalPrice(priceList.getTotalPrice() + price.getPrice());
 				}

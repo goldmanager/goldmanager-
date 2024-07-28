@@ -180,7 +180,8 @@ public class PriceControllerSpringBootTest {
 		for (int current = 0; current < items.size(); current++) {
 			Item expected = items.get(current);
 			Price price = result.getPrices().get(current);
-			assertEquals(getPrice(expected), price.getPrice());
+			assertEquals(getSingleItemPrice(expected), price.getPrice());
+			assertEquals(getTotalItemPrice(expected), price.getPriceTotal());
 			assertEquals(expected.getName(), price.getItem().getName());
 			assertEquals(expected.getId(), price.getItem().getId());
 		}
@@ -210,7 +211,8 @@ public class PriceControllerSpringBootTest {
 			for (int current = 0; current < expectedItems.size(); current++) {
 				Item expected = expectedItems.get(current);
 				Price actual = result.getPriceGroups().get(itemtype.getName()).getPrices().get(current);
-				assertEquals(getPrice(expected), actual.getPrice());
+				assertEquals(getSingleItemPrice(expected), actual.getPrice());
+				assertEquals(getTotalItemPrice(expected), actual.getPriceTotal());
 				assertEquals(expected.getName(), actual.getItem().getName());
 			}
 		}
@@ -240,7 +242,8 @@ public class PriceControllerSpringBootTest {
 		for (int current = 0; current < goldItems.size(); current++) {
 			Item expected = goldItems.get(current);
 			Price actual = result.getPriceGroups().get(gold.getName()).getPrices().get(current);
-			assertEquals(getPrice(expected), actual.getPrice());
+			assertEquals(getSingleItemPrice(expected), actual.getPrice());
+			assertEquals(getTotalItemPrice(expected), actual.getPriceTotal());
 			assertEquals(expected.getName(), actual.getItem().getName());
 		}
 
@@ -251,7 +254,7 @@ public class PriceControllerSpringBootTest {
 		for (int current = 0; current < silverItems.size(); current++) {
 			Item expected = silverItems.get(current);
 			Price actual = result.getPriceGroups().get(silver.getName()).getPrices().get(current);
-			assertEquals(getPrice(expected), actual.getPrice());
+			assertEquals(getSingleItemPrice(expected), actual.getPrice());
 			assertEquals(expected.getName(), actual.getItem().getName());
 		}
 
@@ -275,7 +278,7 @@ public class PriceControllerSpringBootTest {
 		for (int current = 0; current < goldItems.size(); current++) {
 			Item expected = goldItems.get(current);
 			Price price = result.getPrices().get(current);
-			assertEquals(getPrice(expected), price.getPrice());
+			assertEquals(getSingleItemPrice(expected), price.getPrice());
 			assertEquals(expected.getName(), price.getItem().getName());
 			assertEquals(expected.getId(), price.getItem().getId());
 		}
@@ -300,7 +303,8 @@ public class PriceControllerSpringBootTest {
 		for (int current = 0; current < goldItems.size(); current++) {
 			Item expected = goldItems.get(current);
 			Price price = result.getPrices().get(current);
-			assertEquals(getPrice(expected), price.getPrice());
+			assertEquals(getSingleItemPrice(expected), price.getPrice());
+			assertEquals(getTotalItemPrice(expected), price.getPriceTotal());
 			assertEquals(expected.getName(), price.getItem().getName());
 			assertEquals(expected.getId(), price.getItem().getId());
 		}
@@ -325,7 +329,8 @@ public class PriceControllerSpringBootTest {
 			Price result = objectMapper.readValue(body, Price.class);
 			assertNotNull(result);
 
-			assertEquals(getPrice(expected), result.getPrice());
+			assertEquals(getSingleItemPrice(expected), result.getPrice());
+			assertEquals(getTotalItemPrice(expected), result.getPriceTotal());
 			assertEquals(expected.getName(), result.getItem().getName());
 			assertEquals(expected.getId(), result.getItem().getId());
 		}
@@ -345,18 +350,26 @@ public class PriceControllerSpringBootTest {
 	private float getPriceSummary(List<Item> items) {
 		float result = 0;
 		for (Item item : items) {
-			result += getPrice(item);
+			result += getTotalItemPrice(item);
 		}
 		return new BigDecimal(result).setScale(2, RoundingMode.HALF_DOWN).floatValue();
 	}
 
-	private float getPrice(Item item) {
+	private float getSingleItemPrice(Item item) {
+		BigDecimal price = new BigDecimal( item.getAmount() * item.getUnit().getFactor()
+				* item.getItemType().getModifier() * item.getItemType().getMaterial().getPrice())
+				.setScale(2, RoundingMode.HALF_DOWN);
+		return price.floatValue();
+	}
+
+	private float getTotalItemPrice(Item item) {
 		BigDecimal price = new BigDecimal( Float.valueOf(item.getItemCount())* item.getAmount() * item.getUnit().getFactor()
 				* item.getItemType().getModifier() * item.getItemType().getMaterial().getPrice())
 				.setScale(2, RoundingMode.HALF_DOWN);
 		return price.floatValue();
 	}
 
+	
 	@AfterEach
 	public void cleanUp() {
 		itemRepository.deleteAll();
