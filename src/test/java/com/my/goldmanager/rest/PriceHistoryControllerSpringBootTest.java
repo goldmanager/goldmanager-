@@ -241,7 +241,8 @@ public class PriceHistoryControllerSpringBootTest {
 					assertEquals(totalPrice, ph.getPriceList().getTotalPrice());
 					for (int currentPrice = 0; currentPrice < items.size(); currentPrice++) {
 						Price actualPrice = ph.getPriceList().getPrices().get(currentPrice);
-						assertEquals(getPrice(items.get(currentPrice), mh.getPrice()), actualPrice.getPrice());
+						assertEquals(getSinglePrice(items.get(currentPrice), mh.getPrice()), actualPrice.getPrice());
+						assertEquals(getTotalPrice(items.get(currentPrice), mh.getPrice()), actualPrice.getPriceTotal());
 					}
 					current++;
 				}
@@ -287,7 +288,8 @@ public class PriceHistoryControllerSpringBootTest {
 					assertEquals(totalPrice, ph.getPriceList().getTotalPrice());
 					for (int currentPrice = 0; currentPrice < items.size(); currentPrice++) {
 						Price actualPrice = ph.getPriceList().getPrices().get(currentPrice);
-						assertEquals(getPrice(items.get(currentPrice), mh.getPrice()), actualPrice.getPrice());
+						assertEquals(getSinglePrice(items.get(currentPrice), mh.getPrice()), actualPrice.getPrice());
+						assertEquals(getTotalPrice(items.get(currentPrice), mh.getPrice()), actualPrice.getPriceTotal());
 					}
 					current++;
 				}
@@ -337,7 +339,8 @@ public class PriceHistoryControllerSpringBootTest {
 					assertEquals(totalPrice, ph.getPriceList().getTotalPrice());
 					for (int currentPrice = 0; currentPrice < items.size(); currentPrice++) {
 						Price actualPrice = ph.getPriceList().getPrices().get(currentPrice);
-						assertEquals(getPrice(items.get(currentPrice), mh.getPrice()), actualPrice.getPrice());
+						assertEquals(getSinglePrice(items.get(currentPrice), mh.getPrice()), actualPrice.getPrice());
+						assertEquals(getTotalPrice(items.get(currentPrice), mh.getPrice()), actualPrice.getPriceTotal());
 					}
 					current++;
 				}
@@ -376,7 +379,8 @@ public class PriceHistoryControllerSpringBootTest {
 				assertEquals(totalPrice, ph.getPriceList().getTotalPrice());
 				for (int currentPrice = 0; currentPrice < items.size(); currentPrice++) {
 					Price actualPrice = ph.getPriceList().getPrices().get(currentPrice);
-					assertEquals(getPrice(items.get(currentPrice), mh.getPrice()), actualPrice.getPrice());
+					assertEquals(getSinglePrice(items.get(currentPrice), mh.getPrice()), actualPrice.getPrice());
+					assertEquals(getTotalPrice(items.get(currentPrice), mh.getPrice()), actualPrice.getPriceTotal());
 				}
 				current++;
 			}
@@ -393,15 +397,22 @@ public class PriceHistoryControllerSpringBootTest {
 	private float getPriceSummary(List<Item> items, float materialPrice) {
 		float result = 0;
 		for (Item item : items) {
-			result += getPrice(item, materialPrice);
+			result += getTotalPrice(item, materialPrice);
 		}
 		return new BigDecimal(result).setScale(2, RoundingMode.HALF_DOWN).floatValue();
 
 	}
 
-	private float getPrice(Item item, float materialPrice) {
+	private float getTotalPrice(Item item, float materialPrice) {
 
-		BigDecimal price = new BigDecimal(Float.valueOf(item.getItemCount()) * item.getAmount()
+		BigDecimal price = new BigDecimal(getSinglePrice(item, materialPrice)).multiply(new BigDecimal(Float.valueOf(item.getItemCount())))
+				.setScale(2, RoundingMode.HALF_DOWN);
+		return price.floatValue();
+
+	}
+	private float getSinglePrice(Item item, float materialPrice) {
+
+		BigDecimal price = new BigDecimal( item.getAmount()
 				* item.getUnit().getFactor() * item.getItemType().getModifier() * materialPrice)
 				.setScale(2, RoundingMode.HALF_DOWN);
 		return price.floatValue();

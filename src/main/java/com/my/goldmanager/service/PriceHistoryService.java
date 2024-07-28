@@ -69,7 +69,7 @@ public class PriceHistoryService {
 					price.setPrice(PriceCalculatorUtil.calculateSingleItemPrice(item, history.getPrice()));
 					price.setPriceTotal(PriceCalculatorUtil.calculateTotalItemPrice(item, history.getPrice()));
 					priceList.getPrices().add(price);
-					priceList.setTotalPrice(priceList.getTotalPrice() + price.getPrice());
+					priceList.setTotalPrice(priceList.getTotalPrice() + price.getPriceTotal());
 				}
 				priceList.setTotalPrice(new BigDecimal(priceList.getTotalPrice()).setScale(2, RoundingMode.HALF_DOWN).floatValue());
 			}
