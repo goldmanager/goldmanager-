@@ -3,13 +3,12 @@ services:
   db:
     image: mariadb:latest
     container_name: mariadb
+    restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: mydatabase
       MYSQL_USER: myuser
       MYSQL_PASSWORD: mypassword
-    ports:
-      - "3306:3306"
     volumes:
       - db-data:/var/lib/mysql
     healthcheck:
@@ -21,6 +20,7 @@ services:
   goldmanager:
     image: docker.io/fg1212/goldmanager:latestsnapshot
     container_name: goldmanager
+    restart: unless-stopped
     environment:
       SPRING_DATASOURCE_URL: jdbc:mariadb://db:3306/mydatabase
       SPRING_DATASOURCE_USERNAME: myuser
@@ -36,6 +36,7 @@ services:
   goldmanagerui:
     image: docker.io/fg1212/goldmanager-ui:latestsnapshot
     container_name: goldmanager-ui
+    restart: unless-stopped
     environment:
       VUE_APP_API_BASE_URL: http://localhost:8080
     ports:
