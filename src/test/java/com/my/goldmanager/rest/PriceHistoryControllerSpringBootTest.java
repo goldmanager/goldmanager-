@@ -405,8 +405,7 @@ public class PriceHistoryControllerSpringBootTest {
 
 	private float getTotalPrice(Item item, float materialPrice) {
 
-		BigDecimal price = new BigDecimal(getSinglePrice(item, materialPrice)).multiply(new BigDecimal(Float.valueOf(item.getItemCount())))
-				.setScale(2, RoundingMode.HALF_DOWN);
+		BigDecimal price = new BigDecimal(Float.valueOf(item.getItemCount()*getSinglePrice(item, materialPrice))).setScale(2, RoundingMode.HALF_DOWN);
 		return price.floatValue();
 
 	}

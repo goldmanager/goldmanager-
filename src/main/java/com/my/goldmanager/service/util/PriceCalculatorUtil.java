@@ -46,7 +46,7 @@ public class PriceCalculatorUtil {
 	 * @return
 	 */
 	public static float calculateTotalItemPrice(Item item, float materialPrice) {
-		return new BigDecimal(calculateSingleItemPrice(item, materialPrice))
-				.multiply(new BigDecimal(item.getItemCount())).setScale(2, RoundingMode.HALF_DOWN).floatValue();
+		return new BigDecimal(Float.valueOf(item.getItemCount())* calculateSingleItemPrice(item, materialPrice))
+				.setScale(2, RoundingMode.HALF_DOWN).floatValue();
 	}
 }
