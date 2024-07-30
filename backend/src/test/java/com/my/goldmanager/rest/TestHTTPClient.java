@@ -1,8 +1,6 @@
 package com.my.goldmanager.rest;
 
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -48,19 +46,19 @@ public class TestHTTPClient {
 	}
 
 	public static MockHttpServletRequestBuilder doGet(String path) {
-		return authenticate(get(setContextPath(path))).with(csrf());
+		return authenticate(get(setContextPath(path)));
 	}
 
 	public static MockHttpServletRequestBuilder doPost(String path) {
-		return authenticate(post(setContextPath(path))).with(csrf());
+		return authenticate(post(setContextPath(path)));
 	}
 
 	public static MockHttpServletRequestBuilder doPut(String path) {
-		return authenticate(put(setContextPath(path))).with(csrf());
+		return authenticate(put(setContextPath(path)));
 	}
 
 	public static MockHttpServletRequestBuilder doDelete(String path) {
-		return authenticate(delete(setContextPath(path))).with(csrf());
+		return authenticate(delete(setContextPath(path)));
 	}
 
 	public static MockHttpServletRequestBuilder authenticate(MockHttpServletRequestBuilder builder) {

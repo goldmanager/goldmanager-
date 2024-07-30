@@ -17,6 +17,7 @@ package com.my.goldmanager.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -40,9 +41,10 @@ import lombok.RequiredArgsConstructor;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
-public class SecurityConfiguration {
+@Profile("default")
+public class DefaultSecurityConfiguration {
 
-	private static String ENV_CSFR_DISABLED="DISABLE_CSFR";
+
 	@Autowired
 	private CustomUserDetailsService userDetailsService;
 
@@ -53,19 +55,13 @@ public class SecurityConfiguration {
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http.authorizeHttpRequests(
 				(requests) -> requests.requestMatchers("/api/auth/login").permitAll().requestMatchers("/api/**").authenticated().anyRequest().permitAll())
-				.httpBasic(httpBasic -> httpBasic.disable());
-        setUpCSFRSecurity(http);
+				.httpBasic(httpBasic -> httpBasic.disable())
+				.csrf((csfr) -> csfr.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()));
+
 		http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 		return http.build();
 	}
 
-	private HttpSecurity setUpCSFRSecurity(HttpSecurity http) throws Exception {
-		
-		if(Boolean.valueOf(SystemEnvUtil.readVariable(ENV_CSFR_DISABLED))) {
-			return http.csrf((csfr) -> csfr.disable());
-		}
-		return http.csrf((csfr) -> csfr.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()));
-	}
 	
 	@Bean
 	public UserDetailsService userDetailsService() {
