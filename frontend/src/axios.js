@@ -1,8 +1,14 @@
 import axios from 'axios';
 
 function getCsrfToken() {
-    const csrfToken = document.cookie.split('; ').find(row => row.startsWith('XSRF-TOKEN='));
-    return csrfToken ? csrfToken.split('=')[1] : '';
+
+	   const cookies = document.cookie;	
+	   if (!cookies) {
+	       return null; 
+	   }
+
+	   const csrfToken = cookies.split('; ').find(row => row.startsWith('XSRF-TOKEN='));
+	   return csrfToken ? csrfToken.split('=')[1] : null;
 }
 
 const csrfToken = getCsrfToken();
