@@ -1,5 +1,6 @@
 package com.my.goldmanager.rest;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -53,10 +54,11 @@ public class AuthControllerSpringBootTest {
 		authRequest.setPassword("password");
 
 		String token = mockMvc
-				.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+				.perform(post("/api/auth/login").with(csrf()).contentType(MediaType.APPLICATION_JSON)
 						.content(objectMapper.writeValueAsString(authRequest)))
 				.andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
-		mockMvc.perform(get("/api/userService").header("Authorization", "Bearer " + token)).andExpect(status().isOk());
+		mockMvc.perform(get("/api/userService").with(csrf()).header("Authorization", "Bearer " + token))
+				.andExpect(status().isOk());
 
 	}
 
@@ -67,7 +69,7 @@ public class AuthControllerSpringBootTest {
 		authRequest.setUsername("user");
 		authRequest.setPassword("password1");
 
-		mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+		mockMvc.perform(post("/api/auth/login").with(csrf()).contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(authRequest))).andExpect(status().isUnauthorized());
 
 	}
@@ -80,13 +82,14 @@ public class AuthControllerSpringBootTest {
 		authRequest.setPassword("password");
 
 		String token = mockMvc
-				.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+				.perform(post("/api/auth/login").with(csrf()).contentType(MediaType.APPLICATION_JSON)
 						.content(objectMapper.writeValueAsString(authRequest)))
 				.andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
-	
-		mockMvc.perform(get("/api/auth/logoutuser").header("Authorization", "Bearer " + token)).andExpect(status().isNoContent());
 
-		mockMvc.perform(get("/api/userService").header("Authorization", "Bearer " + token))
+		mockMvc.perform(get("/api/auth/logoutuser").with(csrf()).header("Authorization", "Bearer " + token))
+				.andExpect(status().isNoContent());
+
+		mockMvc.perform(get("/api/userService").with(csrf()).header("Authorization", "Bearer " + token))
 				.andExpect(status().is(403));
 	}
 }

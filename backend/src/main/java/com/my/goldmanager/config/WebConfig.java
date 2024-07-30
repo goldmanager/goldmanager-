@@ -27,8 +27,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
 	private static final Logger logger = LoggerFactory.getLogger(WebConfig.class);
 	private static final String ALLOWEDORIGINS = "ALLOWEDORIGINS";
-	private static final String[] allowedOriginsDefault = { "http://localhost:8081",
-			"http://localhost.localdomain:8081" ,"http://localhost"};
+
 
 	@Override
 	public void addCorsMappings(CorsRegistry registry) {
@@ -38,10 +37,9 @@ public class WebConfig implements WebMvcConfigurer {
 			logger.info("allow origins {}", allowedOrigins);
 			allowedOriginsArray = List.of(allowedOrigins.split("[,]")).stream().map(s -> s.trim())
 					.collect(Collectors.toList()).toArray(new String[] {});
-		} else {
-			allowedOriginsArray = allowedOriginsDefault;
-		}
-		registry.addMapping("/**").allowedOrigins(allowedOriginsArray)
-				.allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS").allowedHeaders("*").allowCredentials(true);
+			registry.addMapping("/**").allowedOrigins(allowedOriginsArray)
+			.allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS").allowedHeaders("*").allowCredentials(true);
+		} 
 	}
+		
 }
