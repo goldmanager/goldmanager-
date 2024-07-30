@@ -35,11 +35,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import com.my.goldmanager.encoder.SHA3_256HexEncoder;
 import com.my.goldmanager.service.CustomUserDetailsService;
 
-import lombok.RequiredArgsConstructor;
-
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 @Profile("test")
 public class TestSecurityConfiguration {
 
