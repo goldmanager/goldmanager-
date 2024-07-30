@@ -8,8 +8,10 @@ updates:
     directory: "/frontend"
     schedule:
       interval: "weekly"
+    target-branch: "development"
 
   - package-ecosystem: "gradle"
     directory: "/backend"
     schedule:
       interval: "weekly"
+    target-branch: "development"
