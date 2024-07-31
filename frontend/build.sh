@@ -1,6 +1,5 @@
 #!/bin/sh
 rm -rf dist/
-rm -rf node_modules/
 npm install
 npm run build
 rm ../backend/src/main/resources/static/ -rf

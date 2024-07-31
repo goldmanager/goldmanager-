@@ -17,6 +17,7 @@
 
 <script>
 import axios from '../axios';
+import { jwtDecode } from 'jwt-decode';
 import { mapActions } from 'vuex';
 
 export default {
@@ -36,12 +37,16 @@ export default {
           username: this.username,
           password: this.password
         });
+		const decodedToken = jwtDecode(response.data);
+		const expiration =  new Date(decodedToken.exp * 1000);
+		sessionStorage.setItem('jwtExp',expiration);
         sessionStorage.setItem('jwt-token', response.data); // Speichere das Token im sessionStorage
         sessionStorage.setItem('username', this.username); // Speichere das Token im sessionStorage
         await this.$store.dispatch('login'); // Aktualisiere den Authentifizierungsstatus im Vuex-Store
         this.$router.push('/'); // Leite zur Home-Seite weiter
       } catch (error) {
         this.errorMessage = 'Login failed. Please check your credentials.';
+		console.error("error on login",error);
       }
     }
 

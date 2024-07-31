@@ -34,6 +34,7 @@ export default {
       this.$store.dispatch('logout');
       sessionStorage.removeItem('jwt-token');
       sessionStorage.removeItem('username');
+	  sessionStorage.removeItem('jwtExp');
       this.$router.push('/login');
     }
   }

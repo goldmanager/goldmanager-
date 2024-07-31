@@ -43,7 +43,7 @@ public class AuthenticationService {
 		KeyInfo keyInfo = authKeyInfoService.getKeyInfoForUserName(user.getUsername());
 
 		return Jwts.builder().header().add("keyId", keyInfo.getKeyId()).and().subject(user.getUsername())
-				.issuedAt(new Date()).expiration(new Date(System.currentTimeMillis() + 86400000))
+				.issuedAt(new Date()).expiration(new Date(System.currentTimeMillis() + 86400000)) // One Day
 				.signWith(keyInfo.getKey()).compact();
 
 	}
