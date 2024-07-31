@@ -40,18 +40,6 @@ import com.my.goldmanager.service.exception.ValidationException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-
 @RestController
 @RequestMapping("/api/units")
 public class UnitController {
@@ -98,7 +86,6 @@ public class UnitController {
 			throw new BadRequestException(ve.getMessage(), ve);
 		}
 	}
-	
 
 	@DeleteMapping(path = "/{name}")
 	@Operation(security = @SecurityRequirement(name = "bearerAuth"))
