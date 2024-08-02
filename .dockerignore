@@ -1,0 +1,10 @@
+frontend/node_modules
+frontend/dist
+frontend/.env
+frontend/.settings
+frontend/.project
+frontend/build.sh
+backend/build
+backend/dev-env
+backend/bin
+backend/src/main/resources/static/
