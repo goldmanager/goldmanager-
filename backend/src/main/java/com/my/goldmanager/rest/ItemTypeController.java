@@ -32,9 +32,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.my.goldmanager.entity.ItemType;
 import com.my.goldmanager.service.ItemTypeService;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-
 @RestController()
 @RequestMapping("/api/itemTypes")
 public class ItemTypeController {
@@ -48,7 +45,6 @@ public class ItemTypeController {
 	 * @return
 	 */
 	@PostMapping
-	@Operation(security = @SecurityRequirement(name = "bearerAuth"))
 	public ResponseEntity<ItemType> create(@RequestBody ItemType itemType) {
 		ItemType savedItemType =itemTypeService.create(itemType); 
 		return ResponseEntity.status(HttpStatus.CREATED).body(savedItemType);
@@ -62,7 +58,6 @@ public class ItemTypeController {
 	 * @return
 	 */
 	@PutMapping(path = "/{id}")
-	@Operation(security = @SecurityRequirement(name = "bearerAuth"))
 	public ResponseEntity<ItemType> update(@PathVariable(name = "id") String id, @RequestBody ItemType itemType){
 		Optional<ItemType> result = itemTypeService.update(id, itemType);
 		if(result.isPresent()) {
@@ -77,7 +72,6 @@ public class ItemTypeController {
 	 * @return
 	 */
 	@GetMapping(path ="/{id}")
-	@Operation(security = @SecurityRequirement(name = "bearerAuth"))
 	public ResponseEntity<ItemType> get(@PathVariable(name = "id") String id){
 		Optional<ItemType> result = itemTypeService.getById(id);
 		if(result.isPresent()) {
@@ -92,7 +86,6 @@ public class ItemTypeController {
 	 * @return
 	 */
 	@DeleteMapping(path="/{id}")
-	@Operation(security = @SecurityRequirement(name = "bearerAuth"))
 	public ResponseEntity<Void> delete(@PathVariable(name = "id") String id){
 		if(itemTypeService.delete(id)) {
 			return ResponseEntity.noContent().build();
@@ -105,7 +98,6 @@ public class ItemTypeController {
 	 * @return
 	 */
 	@GetMapping
-	@Operation(security = @SecurityRequirement(name = "bearerAuth"))
 	public List<ItemType> list() {
 		return itemTypeService.list();
 	}

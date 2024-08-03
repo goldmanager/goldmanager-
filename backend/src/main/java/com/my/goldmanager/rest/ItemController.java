@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,12 +29,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.WebRequest;
 
 import com.my.goldmanager.entity.Item;
+import com.my.goldmanager.rest.response.ErrorResponse;
 import com.my.goldmanager.service.ItemService;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import com.my.goldmanager.service.exception.BadRequestException;
 
 @RestController
 @RequestMapping("/api/items")
@@ -50,10 +51,8 @@ public class ItemController {
 	 * @return
 	 */
 	@PostMapping
-	@Operation(security = @SecurityRequirement(name = "bearerAuth"))
 	public ResponseEntity<Item> create(@RequestBody Item item) {
-		Item savedItem =itemService.create(item); 
-		return ResponseEntity.status(HttpStatus.CREATED).body(savedItem);
+		return ResponseEntity.status(HttpStatus.CREATED).body(itemService.create(item));
 		
 	}
 	/**
@@ -63,7 +62,6 @@ public class ItemController {
 	 * @return
 	 */
 	@PutMapping(path = "/{id}")
-	@Operation(security = @SecurityRequirement(name = "bearerAuth"))
 	public ResponseEntity<Item> update(@PathVariable(name = "id") String id, @RequestBody Item item){
 		Optional<Item> result = itemService.update(id, item);
 		if(result.isPresent()) {
@@ -78,7 +76,6 @@ public class ItemController {
 	 * @return
 	 */
 	@GetMapping(path ="/{id}")
-	@Operation(security = @SecurityRequirement(name = "bearerAuth"))
 	public ResponseEntity<Item> get(@PathVariable(name = "id") String id){
 		Optional<Item> result = itemService.getById(id);
 		if(result.isPresent()) {
@@ -93,7 +90,6 @@ public class ItemController {
 	 * @return
 	 */
 	@DeleteMapping(path="/{id}")
-	@Operation(security = @SecurityRequirement(name = "bearerAuth"))
 	public ResponseEntity<Void> delete(@PathVariable(name = "id") String id){
 		if(itemService.delete(id)) {
 			return ResponseEntity.noContent().build();
@@ -106,10 +102,13 @@ public class ItemController {
 	 * @return
 	 */
 	@GetMapping
-	@Operation(security = @SecurityRequirement(name = "bearerAuth"))
 	public List<Item> list(){
 		return itemService.list();
 	}
 	
-	
+	@ExceptionHandler(BadRequestException.class)
+	public final ResponseEntity<ErrorResponse> handleBadRequestException(BadRequestException ex, WebRequest request) {
+		ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+		return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+	}
 }

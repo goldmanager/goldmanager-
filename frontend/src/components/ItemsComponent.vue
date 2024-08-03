@@ -17,7 +17,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr>
+        <tr  v-if="!editedItem">
           <td><input v-model="newItem.name" type="text" placeholder="Name"></td>
 
           <td>
@@ -37,23 +37,41 @@
           </td>
 
         </tr>
+		<tr  v-if="editedItem">
+		      <td><input v-model="editedItem.name" type="text" placeholder="Name"></td>
+
+		      <td>
+		        <select id="optionsItemType" v-model="editedItem.itemType.id">
+		          <option v-for="itemType in itemTypes" :key="itemType.value" :value="itemType.value">{{ itemType.text }}</option>
+		        </select>
+		      </td>
+		       <td><input v-model.number="editedItem.amount" type="number" placeholder="Weight"></td>
+		      <td>
+		        <select id="optionsUnit" v-model="editedItem.unit.name">
+		          <option v-for="unit in units" :key="unit.value" :value="unit.value">{{ unit.text }}</option>
+		        </select>
+		      </td>
+		       <td><input v-model.number="editedItem.itemCount" type="integer" placeholder="Number of items"></td>
+		      <td>
+		       <button class="actionbutton"  @click="updateItem(editedItem)">Save</button>
+			   <button class="actionbutton"  @click="cancelEdit">Cancel</button>
+		      </td>
+
+		    </tr>
         <tr :class="getHighlightClass(item.id)" v-for="item in paginatedItems" :key="item.id">
-          <td><input v-model="item.name" type="text"/></td>
+          <td>{{item.name}}</td>
           <td>
-            <select id="optionsItemtype" v-model="item.itemType.id">
-              <option v-for="itemType in itemTypes" :key="itemType.value" :value="itemType.value">{{ itemType.text }}</option>
-            </select>
+            {{item.itemType.name}}
           </td>
-           <td><input v-model.number="item.amount" type="number" placeholder="Weight"></td>
+           <td>{{item.amount}}</td>
           <td>
-            <select id="optionsUnit" v-model="item.unit.name">
-              <option v-for="unit in units" :key="unit.value" :value="unit.value">{{ unit.text }}</option>
-            </select>
+           {{ item.unit.name }}          
           </td>
-          <td><input v-model.number="item.itemCount" type="integer" placeholder="Number of Items"></td>
+          <td>{{item.itemCount}}</td>
           <td>
-            <button class="actionbutton" @click="updateItem(item)">Save</button>
-            <button class="actionbutton" @click="deleteItem(item.id)">Delete</button>
+			<button class="actionbutton" v-if="editedItem == null"  @click="editItem(item)">Edit</button>
+			<button class="actionbutton" v-if="editedItem != null && editedItem.id === item.id"  @click="cancelEdit">Cancel</button>
+            <button class="actionbutton"  v-if="editedItem == null"  @click="deleteItem(item.id)">Delete</button>
           </td>
         </tr>
       </tbody>
@@ -61,9 +79,9 @@
 
 	<div class="pagination">
 	
-	  <button @click="prevPage" :disabled="currentPage === 1">Previous</button>
-	  <span>Page {{ currentPage }} of {{ totalPages }}</span>
-	  <button @click="nextPage" :disabled="currentPage === totalPages">Next</button>
+	  <button :class="currentPage === 1 ?'pagingButton_disabled':'pagingButton'" @click="prevPage" :disabled="currentPage === 1">Previous</button>
+	  <span>Page {{ currentPage }} of {{ totalPages }} (Items per page: {{itemsPerPage}})</span>
+	  <button  :class="currentPage === totalPages?'pagingButton_disabled':'pagingButton'" @click="nextPage" :disabled="currentPage === totalPages">Next</button>
 	 
 	</div>
 
@@ -93,6 +111,8 @@ export default {
           name: ''
           },
         },
+	  editedItem: null,  
+
 	  itemsPerPageOptions:[5,10,15,20,25,30],
       preSelectedUnit:'',
       preSelectedItemtype:'',
@@ -100,7 +120,7 @@ export default {
 	  currentSort: '',
 	  currentSortDir:'',
 	  currentPage: 1,
-	  itemsPerPage: 5,
+	  itemsPerPage: 10,
 	  itemsFilter: '',
 	  highlightedItem:null,
 	  highlightedType:''
@@ -138,6 +158,10 @@ export default {
 			valA= a[this.currentSort];
 			valB= b[this.currentSort];
 		 }
+		 if (typeof valA === 'string' && typeof valB === 'string') {
+			valA = valA.toLowerCase();
+			valB = valB.toLowerCase();
+		 }
 		 if (valA< valB) return -1 * modifier;
 		 if (valA >valB) return 1 * modifier;
          return 0;
@@ -163,6 +187,16 @@ export default {
   },
   methods: {
 	
+	editItem(item) {
+	  this.highlightedItem=item.id;
+	  this.highlightedType="editmode";
+	  this.editedItem =  { ...item };
+	},
+	cancelEdit() {
+	     this.editedItem = null;
+		 this.highlightedItem='';
+		 this.highlightedType='';
+	 },
 	sortBy(column){
 		
 		if (this.currentSort === column) {
@@ -202,9 +236,12 @@ export default {
    addItem(){
       axios.post('/items', this.newItem)
         .then(response => {
-          this.items.push(response.data);
-		  this.higlightItem(response.data.id,"saved");
-          this.resetNewItem();
+			axios.get('items/'+response.data.id).then(getResponse =>{			
+				this.items.push(getResponse.data);
+				  this.higlightItem(getResponse.data.id,"saved");
+			        this.resetNewItem();
+			});
+        
         })
         .catch(error => {
           console.error("Error adding new unit:", error);
@@ -257,13 +294,16 @@ export default {
       }
     },
    async updateItem(item) {
-
+	  this.higlightItem(item.id,"saved");
       axios.put(`/items/`+item.id, item)
         .then(response => {
           // Handle success
           console.log("Update erfolgreich:", response);
+		  this.editedItem = null;
+		  this.originalItem = null;
           this.fetchData();
-		  this.higlightItem(item.id,"saved");
+		  
+		  
         })
         .catch(error => {
           // Handle error
@@ -273,23 +313,24 @@ export default {
         });
     },
     async deleteItem(itemId) {
-	
-	 this.higlightItem(itemId,"deleted");
-				 
-     await axios.delete(`/items/${itemId}`)
-	 
-        .then(response =>  {
-          // Handle success
-          console.log("Delete erfolgreich:", response);
-		  
-          this.fetchData();
-        })
-        .catch(error => {
-          // Handle error
-          console.error("Delete fehlgeschlagen:", error);
-		  this.higlightItem(itemId,"error");
-          this.setErrorMessage(error,"Could not delete ItemType");
-        });
+		if (window.confirm('Are you sure you want to delete this item?')) {
+			 this.higlightItem(itemId,"deleted");
+						 
+		     await axios.delete(`/items/${itemId}`)
+			 
+		        .then(response =>  {
+		          // Handle success
+		          console.log("Delete erfolgreich:", response);
+				  
+		          this.fetchData();
+		        })
+		        .catch(error => {
+		          // Handle error
+		          console.error("Delete fehlgeschlagen:", error);
+				  this.higlightItem(itemId,"error");
+		          this.setErrorMessage(error,"Could not delete ItemType");
+		        });
+		}
     },
 
     setErrorMessage(error, defaultMessage){
