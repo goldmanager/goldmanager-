@@ -161,21 +161,21 @@ export default {
   },
   methods: {
     getCurrentFilter(){
-      return sessionStorage.getItem("PriceMaterialFilter")?sessionStorage.getItem("PriceMaterialFilter"):"";
+      return localStorage.getItem("PriceMaterialFilter")?localStorage.getItem("PriceMaterialFilter"):"";
     },
 
     setCurrentFilter(event){
 
-      sessionStorage.setItem("PriceMaterialFilter",event.target.value);
+      localStorage.setItem("PriceMaterialFilter",event.target.value);
       this.currentFilter=event.target.value;
       this.fetchData();
     },
     getCurrentViewType(){
-      return sessionStorage.getItem("PriceViewType")?sessionStorage.getItem("PriceViewType"):"PriceList";
+      return localStorage.getItem("PriceViewType")?localStorage.getItem("PriceViewType"):"PriceList";
     },
     setCurrentViewType(event){
 
-      sessionStorage.setItem("PriceViewType",event.target.value);
+      localStorage.setItem("PriceViewType",event.target.value);
       this.currentViewType=event.target.value;
       this.fetchData();
     },
