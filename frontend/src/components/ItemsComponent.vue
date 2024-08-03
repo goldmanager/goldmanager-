@@ -37,7 +37,7 @@
           </td>
 
         </tr>
-        <tr v-for="item in paginatedItems" :key="item.id">
+        <tr :class="getHighlightClass(item.id)" v-for="item in paginatedItems" :key="item.id">
           <td><input v-model="item.name" type="text"/></td>
           <td>
             <select id="optionsItemtype" v-model="item.itemType.id">
@@ -101,7 +101,9 @@ export default {
 	  currentSortDir:'',
 	  currentPage: 1,
 	  itemsPerPage: 5,
-	  itemsFilter: ''
+	  itemsFilter: '',
+	  highlightedItem:null,
+	  highlightedType:''
 	  
     };
 
@@ -147,9 +149,10 @@ export default {
 	     return this.filteredItems.slice(start, end);
 	},
 	totalPages() {
-	   return Math.ceil(this.items.length / this.itemsPerPage);
+	   return Math.ceil(this.filteredItems.length / this.itemsPerPage);
 	},
 	filteredItems(){
+		
 		if(this.itemsFilter != null && this.itemsFilter !=''){
 			return this.sortedItems.filter(item =>
 			        item.name.toLowerCase().includes(this.itemsFilter.toLowerCase())
@@ -159,6 +162,7 @@ export default {
 	}
   },
   methods: {
+	
 	sortBy(column){
 		
 		if (this.currentSort === column) {
@@ -169,7 +173,12 @@ export default {
 		localStorage.setItem("ItemsColumnsSort",column);
 		
 	},
-	
+	getHighlightClass(itemId) {
+	     if (this.highlightedItem === itemId) {
+	       return "highlight_"+this.highlightedType;
+	     }
+	     return '';
+	   },
 	nextPage() {
 	      if (this.currentPage < this.totalPages) {
 	        this.currentPage++;
@@ -182,10 +191,19 @@ export default {
 			localStorage.setItem("ItemsItemsPerPage",this.currentPage);
 	      }
     },
+    higlightItem(itemId,highlightedType){
+		this.highlightedItem=itemId;
+		this.highlightedType=highlightedType;
+		setTimeout(() => {
+		       this.highlightedItem = null;
+			   this.highlightedType='';
+		 }, 3000);
+	},
    addItem(){
       axios.post('/items', this.newItem)
         .then(response => {
           this.items.push(response.data);
+		  this.higlightItem(response.data.id,"saved");
           this.resetNewItem();
         })
         .catch(error => {
@@ -232,6 +250,7 @@ export default {
         const itemresponse = await axios.get(`/items`);
 
         this.items = itemresponse.data;
+		this.itemsToSort=[...this.items];
       } catch (error) {
         console.error('Error fetching data:', error);
         this.setErrorMessage(error,"Error fetching data. Please try again later.");
@@ -244,24 +263,31 @@ export default {
           // Handle success
           console.log("Update erfolgreich:", response);
           this.fetchData();
+		  this.higlightItem(item.id,"saved");
         })
         .catch(error => {
           // Handle error
           console.error("Update fehlgeschlagen:", error);
+		  this.higlightItem(item.id,"error");
           this.setErrorMessage(error,"Could not update ItemType");
         });
     },
     async deleteItem(itemId) {
-
-      axios.delete(`/items/${itemId}`)
-        .then(response => {
+	
+	 this.higlightItem(itemId,"deleted");
+				 
+     await axios.delete(`/items/${itemId}`)
+	 
+        .then(response =>  {
           // Handle success
           console.log("Delete erfolgreich:", response);
+		  
           this.fetchData();
         })
         .catch(error => {
           // Handle error
           console.error("Delete fehlgeschlagen:", error);
+		  this.higlightItem(itemId,"error");
           this.setErrorMessage(error,"Could not delete ItemType");
         });
     },

@@ -73,6 +73,18 @@ input[type="text"], input[type="password"], input[type="number"] , input[type="d
   box-shadow: 0 5px 8px rgba(0, 0, 0, 0.1);
 
 }
+.highlight_saved{
+	background-color: green;
+	transition: background-color 0.5s ease;
+}
+.highlight_deleted{
+	background-color: blue;
+	transition: background-color 0.5s ease;
+}
+.highlight_error{
+	background-color: darkred;
+	transition: background-color 0.5s ease;
+}
 table {
   width: 100%;
   border-collapse: collapse;
