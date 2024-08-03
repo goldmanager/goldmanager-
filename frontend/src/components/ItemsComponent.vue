@@ -3,14 +3,16 @@
     <div class="content">
     <div><h1>Items</h1></div>
     <div v-if="errorMessage" class="error">{{ errorMessage }}</div>
+	<div><input v-model="itemsFilter" type="text" placeholder="Search by Item name"></div>
     <table >
       <thead>
         <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Weight</th>
-          <th>Unit</th>
-          <th>Number of Items</th>
+          <th @click="sortBy('name')">Name <span v-if="currentSort === 'name'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span>
+		 </th>
+          <th @click="sortBy('itemType')">Type <span v-if="currentSort === 'itemType'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span></th>
+          <th @click="sortBy('amount')">Weight <span v-if="currentSort === 'amount'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span></th>
+          <th @click="sortBy('unit')">Unit <span v-if="currentSort === 'unit'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span></th>
+          <th @click="sortBy('itemCount')">Number of Items <span v-if="currentSort === 'itemCount'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span></th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -19,13 +21,13 @@
           <td><input v-model="newItem.name" type="text" placeholder="Name"></td>
 
           <td>
-            <select id="options" v-model="newItem.itemType.id">
+            <select id="optionsItemType" v-model="newItem.itemType.id">
               <option v-for="itemType in itemTypes" :key="itemType.value" :value="itemType.value">{{ itemType.text }}</option>
             </select>
           </td>
            <td><input v-model.number="newItem.amount" type="number" placeholder="Weight"></td>
           <td>
-            <select id="options" v-model="newItem.unit.name">
+            <select id="optionsUnit" v-model="newItem.unit.name">
               <option v-for="unit in units" :key="unit.value" :value="unit.value">{{ unit.text }}</option>
             </select>
           </td>
@@ -35,16 +37,16 @@
           </td>
 
         </tr>
-        <tr v-for="item in items" :key="item.id">
+        <tr v-for="item in paginatedItems" :key="item.id">
           <td><input v-model="item.name" type="text"/></td>
           <td>
-            <select id="options" v-model="item.itemType.id">
+            <select id="optionsItemtype" v-model="item.itemType.id">
               <option v-for="itemType in itemTypes" :key="itemType.value" :value="itemType.value">{{ itemType.text }}</option>
             </select>
           </td>
            <td><input v-model.number="item.amount" type="number" placeholder="Weight"></td>
           <td>
-            <select id="options" v-model="item.unit.name">
+            <select id="optionsUnit" v-model="item.unit.name">
               <option v-for="unit in units" :key="unit.value" :value="unit.value">{{ unit.text }}</option>
             </select>
           </td>
@@ -57,11 +59,21 @@
       </tbody>
     </table>
 
+	<div class="pagination">
+	
+	  <button @click="prevPage" :disabled="currentPage === 1">Previous</button>
+	  <span>Page {{ currentPage }} of {{ totalPages }}</span>
+	  <button @click="nextPage" :disabled="currentPage === totalPages">Next</button>
+	 
+	</div>
+
     </div>
   </div>
 </template>
 
 <script>
+/*eslint no-mixed-spaces-and-tabs: ["error", "smart-tabs"]*/
+
 import axios from '../axios';
 
 export default {
@@ -81,17 +93,95 @@ export default {
           name: ''
           },
         },
+	  itemsPerPageOptions:[5,10,15,20,25,30],
       preSelectedUnit:'',
       preSelectedItemtype:'',
-      errorMessage: ''
+	  errorMessage: '',
+	  currentSort: '',
+	  currentSortDir:'',
+	  currentPage: 1,
+	  itemsPerPage: 5,
+	  itemsFilter: ''
+	  
     };
 
   },
 
   mounted() {
+	this.currentSort=localStorage.getItem("ItemsColumnsSort")?localStorage.getItem("ItemsColumnsSort"):"name";
+	this.currentSortDir = localStorage.getItem("ItemsColumnsSortDir")?localStorage.getItem("ItemsColumnsSortDir"):"asc";
+	this.currentPage = localStorage.getItem("ItemsCurrentPage")?localStorage.getItem("ItemsCurrentPage"):1;
+	
     this.fetchData();
+	
+  },
+  computed: {
+	
+     sortedItems() {
+	   let itemsCopy = [...this.items];
+       return itemsCopy.sort((a, b) => {
+         let modifier = 1;
+         if (this.currentSortDir === 'desc') modifier = -1;
+		 let valA= "";
+		 let valB= "";
+		 if(this.currentSort === 'itemType'){
+			valA = a.itemType.name;
+			valB = b.itemType.name;
+		 }
+		 else if(this.currentSort === 'unit'){
+                valA = a.unit.name;
+                valB = b.unit.name;
+		 }
+		 else{
+			valA= a[this.currentSort];
+			valB= b[this.currentSort];
+		 }
+		 if (valA< valB) return -1 * modifier;
+		 if (valA >valB) return 1 * modifier;
+         return 0;
+       });
+     },
+	 paginatedItems() {
+	     const start = (this.currentPage - 1) * this.itemsPerPage;
+	     const end = start + this.itemsPerPage;
+	     return this.filteredItems.slice(start, end);
+	},
+	totalPages() {
+	   return Math.ceil(this.items.length / this.itemsPerPage);
+	},
+	filteredItems(){
+		if(this.itemsFilter != null && this.itemsFilter !=''){
+			return this.sortedItems.filter(item =>
+			        item.name.toLowerCase().includes(this.itemsFilter.toLowerCase())
+			 );
+		}
+		return this.sortedItems;
+	}
   },
   methods: {
+	sortBy(column){
+		
+		if (this.currentSort === column) {
+		        this.currentSortDir = this.currentSortDir === 'asc' ? 'desc' : 'asc';
+				localStorage.setItem("ItemsColumnsSortDir",this.currentSortDir )				
+		    }
+	    this.currentSort=column;
+		localStorage.setItem("ItemsColumnsSort",column);
+		
+	},
+	
+	nextPage() {
+	      if (this.currentPage < this.totalPages) {
+	        this.currentPage++;
+			localStorage.setItem("ItemsItemsPerPage",this.currentPage);
+	      }
+	    },
+	prevPage() {
+	      if (this.currentPage > 1) {
+	        this.currentPage--;
+			localStorage.setItem("ItemsItemsPerPage",this.currentPage);
+	      }
+    },
    addItem(){
       axios.post('/items', this.newItem)
         .then(response => {
