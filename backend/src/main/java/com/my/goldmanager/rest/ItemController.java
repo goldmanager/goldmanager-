@@ -44,68 +44,80 @@ public class ItemController {
 	@Autowired
 	private ItemService itemService;
 
-	
 	/**
 	 * Create Item
+	 * 
 	 * @param item
 	 * @return
 	 */
 	@PostMapping
 	public ResponseEntity<Item> create(@RequestBody Item item) {
-		return ResponseEntity.status(HttpStatus.CREATED).body(itemService.create(item));
-		
+		try {
+			return ResponseEntity.status(HttpStatus.CREATED).body(itemService.create(item));
+		} catch (Exception e) {
+			throw new BadRequestException(e.getMessage(), e);
+		}
 	}
+
 	/**
 	 * Update Item
+	 * 
 	 * @param id
 	 * @param item
 	 * @return
 	 */
 	@PutMapping(path = "/{id}")
-	public ResponseEntity<Item> update(@PathVariable(name = "id") String id, @RequestBody Item item){
-		Optional<Item> result = itemService.update(id, item);
-		if(result.isPresent()) {
+	public ResponseEntity<Item> update(@PathVariable(name = "id") String id, @RequestBody Item item) {
+		try {
+			Optional<Item> result = itemService.update(id, item);
+			if (result.isPresent()) {
+				return ResponseEntity.ok(result.get());
+			}
+			return ResponseEntity.notFound().build();
+		} catch (Exception e) {
+			throw new BadRequestException(e.getMessage(), e);
+		}
+	}
+
+	/**
+	 * Gets the item by provided id
+	 * 
+	 * @param id
+	 * @return
+	 */
+	@GetMapping(path = "/{id}")
+	public ResponseEntity<Item> get(@PathVariable(name = "id") String id) {
+		Optional<Item> result = itemService.getById(id);
+		if (result.isPresent()) {
 			return ResponseEntity.ok(result.get());
 		}
 		return ResponseEntity.notFound().build();
 	}
 
 	/**
-	 * Gets the item by provided id
-	 * @param id
-	 * @return
-	 */
-	@GetMapping(path ="/{id}")
-	public ResponseEntity<Item> get(@PathVariable(name = "id") String id){
-		Optional<Item> result = itemService.getById(id);
-		if(result.isPresent()) {
-			return ResponseEntity.ok(result.get());
-		}
-		return ResponseEntity.notFound().build();
-	}
-	
-	/**
 	 * Deletes the item with provided id
+	 * 
 	 * @param id
 	 * @return
 	 */
-	@DeleteMapping(path="/{id}")
-	public ResponseEntity<Void> delete(@PathVariable(name = "id") String id){
-		if(itemService.delete(id)) {
+	@DeleteMapping(path = "/{id}")
+	public ResponseEntity<Void> delete(@PathVariable(name = "id") String id) {
+		if (itemService.delete(id)) {
 			return ResponseEntity.noContent().build();
 		}
 		return ResponseEntity.notFound().build();
 	}
-	
+
 	/**
 	 * List all Items
+	 * 
 	 * @return
 	 */
 	@GetMapping
-	public List<Item> list(){
+	public List<Item> list() {
 		return itemService.list();
 	}
-	
+
 	@ExceptionHandler(BadRequestException.class)
 	public final ResponseEntity<ErrorResponse> handleBadRequestException(BadRequestException ex, WebRequest request) {
 		ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());

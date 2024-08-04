@@ -3,7 +3,7 @@
     <div class="content">
     <div><h1>Items</h1></div>
     <div v-if="errorMessage" class="error">{{ errorMessage }}</div>
-	<div><input v-model="itemsFilter" type="text" placeholder="Search by Item name"></div>
+	<div><input v-model="searchQuery" type="text" placeholder="Search by Item name"></div>
     <table >
       <thead>
         <tr>
@@ -17,8 +17,8 @@
         </tr>
       </thead>
       <tbody>
-        <tr  v-if="!editedItem">
-          <td><input v-model="newItem.name" type="text" placeholder="Name"></td>
+        <tr  v-if="!editedObject">
+          <td><input v-model="newItem.name" type="text" placeholder="Name" required="true"></td>
 
           <td>
             <select id="optionsItemType" v-model="newItem.itemType.id">
@@ -37,28 +37,28 @@
           </td>
 
         </tr>
-		<tr  v-if="editedItem">
-		      <td><input v-model="editedItem.name" type="text" placeholder="Name"></td>
+		<tr  v-if="editedObject">
+		      <td><input v-model="editedObject.name" type="text" placeholder="Name" required="true"></td>
 
 		      <td>
-		        <select id="optionsItemType" v-model="editedItem.itemType.id">
+		        <select id="optionsItemType" v-model="editedObject.itemType.id">
 		          <option v-for="itemType in itemTypes" :key="itemType.value" :value="itemType.value">{{ itemType.text }}</option>
 		        </select>
 		      </td>
-		       <td><input v-model.number="editedItem.amount" type="number" placeholder="Weight"></td>
+		       <td><input v-model.number="editedObject.amount" type="number" placeholder="Weight"></td>
 		      <td>
-		        <select id="optionsUnit" v-model="editedItem.unit.name">
+		        <select id="optionsUnit" v-model="editedObject.unit.name">
 		          <option v-for="unit in units" :key="unit.value" :value="unit.value">{{ unit.text }}</option>
 		        </select>
 		      </td>
-		       <td><input v-model.number="editedItem.itemCount" type="integer" placeholder="Number of items"></td>
+		       <td><input v-model.number="editedObject.itemCount" type="integer" placeholder="Number of items"></td>
 		      <td>
-		       <button class="actionbutton"  @click="updateItem(editedItem)">Save</button>
+		       <button class="actionbutton"  @click="updateObject()">Save</button>
 			   <button class="actionbutton"  @click="cancelEdit">Cancel</button>
 		      </td>
 
 		    </tr>
-        <tr :class="getHighlightClass(item.id)" v-for="item in paginatedItems" :key="item.id">
+        <tr :class="getHighlightClass(item.id)" v-for="item in paginatedObjects" :key="item.id">
           <td>{{item.name}}</td>
           <td>
             {{item.itemType.name}}
@@ -69,19 +69,20 @@
           </td>
           <td>{{item.itemCount}}</td>
           <td>
-			<button class="actionbutton" v-if="editedItem == null"  @click="editItem(item)">Edit</button>
-			<button class="actionbutton" v-if="editedItem != null && editedItem.id === item.id"  @click="cancelEdit">Cancel</button>
-            <button class="actionbutton"  v-if="editedItem == null"  @click="deleteItem(item.id)">Delete</button>
+			<button class="actionbutton" v-if="editedObject == null"  @click="editObject(item)">Edit</button>
+			<button class="actionbutton" v-if="editedObject != null && editedObject.id === item.id"  @click="cancelEdit">Cancel</button>
+            <button class="actionbutton"  v-if="editedObject == null"  @click="deleteObject(item.id)">Delete</button>
           </td>
         </tr>
       </tbody>
     </table>
 
-	<div class="pagination">
+	<div class="pagination" v-if="totalPages > 0">
 	
 	  <button :class="currentPage === 1 ?'pagingButton_disabled':'pagingButton'" @click="prevPage" :disabled="currentPage === 1">Previous</button>
-	  <span>Page {{ currentPage }} of {{ totalPages }} (Items per page: {{itemsPerPage}})</span>
+	  <span>Page {{ currentPage }} of {{ totalPages }}</span>
 	  <button  :class="currentPage === totalPages?'pagingButton_disabled':'pagingButton'" @click="nextPage" :disabled="currentPage === totalPages">Next</button>
+	  <span>(Items per page: {{pageSize}})</span>
 	 
 	</div>
 
@@ -111,18 +112,16 @@ export default {
           name: ''
           },
         },
-	  editedItem: null,  
-
-	  itemsPerPageOptions:[5,10,15,20,25,30],
+	  editedObject: null,  
       preSelectedUnit:'',
       preSelectedItemtype:'',
 	  errorMessage: '',
 	  currentSort: '',
 	  currentSortDir:'',
-	  currentPage: 1,
-	  itemsPerPage: 10,
-	  itemsFilter: '',
-	  highlightedItem:null,
+	  currentPageNumber: 1,
+	  pageSize: 10,
+	  searchQuery: '',
+	  highlightedRow:null,
 	  highlightedType:''
 	  
     };
@@ -132,14 +131,13 @@ export default {
   mounted() {
 	this.currentSort=localStorage.getItem("ItemsColumnsSort")?localStorage.getItem("ItemsColumnsSort"):"name";
 	this.currentSortDir = localStorage.getItem("ItemsColumnsSortDir")?localStorage.getItem("ItemsColumnsSortDir"):"asc";
-	this.currentPage = localStorage.getItem("ItemsCurrentPage")?localStorage.getItem("ItemsCurrentPage"):1;
 	
     this.fetchData();
 	
   },
   computed: {
 	
-     sortedItems() {
+     sortedObjects() {
 	   let itemsCopy = [...this.items];
        return itemsCopy.sort((a, b) => {
          let modifier = 1;
@@ -167,36 +165,50 @@ export default {
          return 0;
        });
      },
-	 paginatedItems() {
-	     const start = (this.currentPage - 1) * this.itemsPerPage;
-	     const end = start + this.itemsPerPage;
-	     return this.filteredItems.slice(start, end);
+	 paginatedObjects() {
+	     const start = (this.currentPage - 1) * this.pageSize;
+	     const end = start + this.pageSize;
+	     return this.filteredObjects.slice(start, end);
+	},
+	currentPage() {
+		if(this.currentPageNumber > this.totalPages){
+			return 1;
+		}
+		return this.currentPageNumber;
 	},
 	totalPages() {
-	   return Math.ceil(this.filteredItems.length / this.itemsPerPage);
+	   return Math.ceil(this.filteredObjects.length / this.pageSize);
 	},
-	filteredItems(){
+	filteredObjects(){
 		
-		if(this.itemsFilter != null && this.itemsFilter !=''){
-			return this.sortedItems.filter(item =>
-			        item.name.toLowerCase().includes(this.itemsFilter.toLowerCase())
+		if(this.searchQuery != null && this.searchQuery !=''){
+			return this.sortedObjects.filter(item =>
+			        item.name.toLowerCase().includes(this.searchQuery.toLowerCase())
 			 );
 		}
-		return this.sortedItems;
+		return this.sortedObjects;
 	}
   },
   methods: {
-	
-	editItem(item) {
-	  this.highlightedItem=item.id;
-	  this.highlightedType="editmode";
-	  this.editedItem =  { ...item };
+	getItemTypeName(itemTypeId){
+				let itemtype = this.itemTypes.find(itemType =>itemType.value === itemTypeId);
+				if(itemtype){
+					return itemtype.text;
+				}
+				return "";
+	},
+	editObject(object) {
+		this.errorMessage="";
+		this.highlightedRow=object.id;
+		this.highlightedType="editmode";
+		this.editedObject =  { ...object };
 	},
 	cancelEdit() {
-	     this.editedItem = null;
-		 this.highlightedItem='';
-		 this.highlightedType='';
-	 },
+		this.errorMessage="";
+		this.editedObject = null;
+		this.highlightedRow='';
+		this.highlightedType='';
+	},
 	sortBy(column){
 		
 		if (this.currentSort === column) {
@@ -208,40 +220,42 @@ export default {
 		
 	},
 	getHighlightClass(itemId) {
-	     if (this.highlightedItem === itemId) {
+	    if (this.highlightedRow === itemId) {
 	       return "highlight_"+this.highlightedType;
 	     }
 	     return '';
 	   },
 	nextPage() {
-	      if (this.currentPage < this.totalPages) {
-	        this.currentPage++;
-			localStorage.setItem("ItemsItemsPerPage",this.currentPage);
-	      }
-	    },
+		if (this.currentPage < this.totalPages) {
+			this.currentPageNumber = this.currentPage+1;
+		}
+	},
 	prevPage() {
-	      if (this.currentPage > 1) {
-	        this.currentPage--;
-			localStorage.setItem("ItemsItemsPerPage",this.currentPage);
-	      }
-    },
-    higlightItem(itemId,highlightedType){
-		this.highlightedItem=itemId;
+		if (this.currentPage > 1) {
+			this.currentPageNumber = this.currentPage-1;
+		}
+	},
+	higlightRow(objectId,highlightedType){
+		this.highlightedRow=objectId;
 		this.highlightedType=highlightedType;
 		setTimeout(() => {
-		       this.highlightedItem = null;
-			   this.highlightedType='';
-		 }, 3000);
+			if(!this.editedObject){
+				this.highlightedRow = null;
+				this.highlightedType='';
+			}
+			else{
+				this.highlightedType='editmode';
+			}
+		}, 3000);
 	},
    addItem(){
+	  this.errorMessage="";
+	  this.newItem.itemType["name"]=this.getItemTypeName(this.newItem.itemType.id);
       axios.post('/items', this.newItem)
         .then(response => {
-			axios.get('items/'+response.data.id).then(getResponse =>{			
-				this.items.push(getResponse.data);
-				  this.higlightItem(getResponse.data.id,"saved");
-			        this.resetNewItem();
-			});
-        
+			this.items.push(response.data);
+			this.higlightRow(response.data.id,"saved");
+			this.resetNewItem();
         })
         .catch(error => {
           console.error("Error adding new unit:", error);
@@ -293,30 +307,30 @@ export default {
         this.setErrorMessage(error,"Error fetching data. Please try again later.");
       }
     },
-   async updateItem(item) {
-	  this.higlightItem(item.id,"saved");
-      axios.put(`/items/`+item.id, item)
+   async updateObject() {
+	  let id =  this.editedObject.id;
+	  this.higlightRow(id,"saved");
+      axios.put(`/items/`+id, this.editedObject)
         .then(response => {
           // Handle success
           console.log("Update erfolgreich:", response);
-		  this.editedItem = null;
-		  this.originalItem = null;
+		  this.editedObject = null;
           this.fetchData();
-		  
+	
 		  
         })
         .catch(error => {
           // Handle error
           console.error("Update fehlgeschlagen:", error);
-		  this.higlightItem(item.id,"error");
+		  this.higlightRow(id,"error");
           this.setErrorMessage(error,"Could not update ItemType");
         });
     },
-    async deleteItem(itemId) {
+    async deleteObject(objectId) {
 		if (window.confirm('Are you sure you want to delete this item?')) {
-			 this.higlightItem(itemId,"deleted");
+			 this.higlightRow(objectId,"deleted");
 						 
-		     await axios.delete(`/items/${itemId}`)
+		     await axios.delete(`/items/${objectId}`)
 			 
 		        .then(response =>  {
 		          // Handle success
@@ -327,20 +341,20 @@ export default {
 		        .catch(error => {
 		          // Handle error
 		          console.error("Delete fehlgeschlagen:", error);
-				  this.higlightItem(itemId,"error");
+				  this.higlightRow(objectId,"error");
 		          this.setErrorMessage(error,"Could not delete ItemType");
 		        });
 		}
     },
 
-    setErrorMessage(error, defaultMessage){
-          if( error.response != null &&  error.response.data != null  && error.response.data.message != null){
-            this.errorMessage =error.response.data.message;
-          }
-          else{
-            this.errorMessage=defaultMessage;
-          }
-    }
+	  setErrorMessage(error, defaultMessage) {
+		  if (error.response != null && error.response.data != null && error.response.data.message != null) {
+			  this.errorMessage = error.response.data.message;
+		  }
+		  else {
+			  this.errorMessage = defaultMessage;
+		  }
+	  }
 
   }
 };
