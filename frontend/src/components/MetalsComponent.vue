@@ -73,7 +73,6 @@ export default {
 			highlightedRow: null,
 			highlightedType: '',
 			editedObject: null
-
 		};
 
 	},
