@@ -103,13 +103,13 @@
         <table v-if="priceGroup.prices.length >0">
 			<thead>
 				<tr>
-					<th>Name</th>
-					<th>Weight</th>
-					<th>Unit</th>
-					<th>Number of Items</th>
-					<th>Unit Price</th>
-					<th>Total Price </th>
-					<th>Metal</th>
+					<th @click="sortGroupPricesBy('name',priceGroup.groupName)">Name <span v-if="getGroupPricesSortForGroup(priceGroup.groupName) === 'name'">{{ getGroupPricesSortDirForGroup(priceGroup.groupName) === 'asc' ? '▲' : '▼' }}</span></th>
+					<th @click="sortGroupPricesBy('amount',priceGroup.groupName)">Weight <span v-if="getGroupPricesSortForGroup(priceGroup.groupName) === 'amount'">{{ getGroupPricesSortDirForGroup(priceGroup.groupName) === 'asc' ? '▲' : '▼' }}</span></th>
+					<th @click="sortGroupPricesBy('unit',priceGroup.groupName)">Unit <span v-if="getGroupPricesSortForGroup(priceGroup.groupName) === 'unit'">{{ getGroupPricesSortDirForGroup(priceGroup.groupName) === 'asc' ? '▲' : '▼' }}</span></th>
+					<th @click="sortGroupPricesBy('itemCount',priceGroup.groupName)">Number of Items <span v-if="getGroupPricesSortForGroup(priceGroup.groupName) === 'itemCount'">{{ getGroupPricesSortDirForGroup(priceGroup.groupName) === 'asc' ? '▲' : '▼' }}</span></th>
+					<th @click="sortGroupPricesBy('price',priceGroup.groupName)">Unit Price <span v-if="getGroupPricesSortForGroup(priceGroup.groupName) === 'price'">{{ getGroupPricesSortDirForGroup(priceGroup.groupName) === 'asc' ? '▲' : '▼' }}</span></th>
+					<th @click="sortGroupPricesBy('priceTotal',priceGroup.groupName)">Total Price <span v-if="getGroupPricesSortForGroup(priceGroup.groupName) === 'priceTotal'">{{ getGroupPricesSortDirForGroup(priceGroup.groupName) === 'asc' ? '▲' : '▼' }}</span></th>
+					<th @click="sortGroupPricesBy('metal',priceGroup.groupName)">Metal  <span v-if="getGroupPricesSortForGroup(priceGroup.groupName) === 'metal'">{{ getGroupPricesSortDirForGroup(priceGroup.groupName) === 'asc' ? '▲' : '▼' }}</span></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -172,7 +172,7 @@ export default {
 	  groupsSearchQuery:'',
 	  groupsListCurrentPageNumber:{},
 	  groupsListSort:{},
-	  proupsListSortDir:{},
+	  groupsListSortDir:{},
 	  groupsListQuerys:{}
 	  
     };
@@ -285,9 +285,73 @@ export default {
 	filteredGroupPrices(groupName, prices){
 	
 		if(groupName != null && groupName !='' && this.groupsListQuerys[groupName] != null && this.groupsListQuerys[groupName] != ''){
-			return prices.filter(price =>price.item.name.toLowerCase().includes(this.groupsListQuerys[groupName].toLowerCase()));	
+			return this.sortedGroupPriceList(groupName,prices).filter(price =>price.item.name.toLowerCase().includes(this.groupsListQuerys[groupName].toLowerCase()));	
 		}
-		return prices;
+		return this.sortedGroupPriceList(groupName,prices);
+	},
+	
+	getGroupPricesSortForGroup(groupName){ 
+		if(this.groupsListSort[groupName] == null || this.groupsListSort[groupName] == ''){
+			return "name";
+		}
+		return this.groupsListSort[groupName];
+	},
+	getGroupPricesSortDirForGroup(groupName){ 
+		if(this.groupsListSortDir[groupName] == null || this.groupsListSortDir[groupName] == ''){
+			return "desc";
+		}
+		return this.groupsListSortDir[groupName];
+	},	
+	sortGroupPricesBy(column, groupName){			
+			if (this.getGroupPricesSortForGroup(groupName) === column) {
+				this.groupsListSortDir[groupName] = this.getGroupPricesSortDirForGroup(groupName)=== 'asc' ? 'desc' : 'asc';
+						
+			}
+			this.groupsListSort[groupName]=column;
+				
+	},
+	sortedGroupPriceList(groupName, prices) {
+		const sortDir =this.getGroupPricesSortDirForGroup(groupName);
+		const groupSort = this.getGroupPricesSortForGroup(groupName);
+		let sortedPrices =[...prices];
+		return sortedPrices.sort((a, b) => {
+			let modifier = 1;
+			if (sortDir === 'desc') modifier = -1;
+			let valA = "";
+			let valB = "";
+			if (groupSort === 'name') {
+				valA = a.item.name;
+				valB = b.item.name;
+			}
+			else if (groupSort === 'amount') {
+				valA = a.item.amount;
+				valB = b.item.amount;
+			}
+			else if (groupSort === 'unit') {
+				valA = a.item.unit.name;
+				valB = b.item.unit.name;
+			}
+			else if (groupSort === 'itemCount') {
+				valA = a.item.itemCount;
+				valB = b.item.itemCount;
+			}
+			else if (groupSort === 'metal') {
+				valA = a.item.itemType.material.name;
+				valB = b.item.itemType.material.name;
+			}							
+			else {
+				valA = a[groupSort];
+				valB = b[groupSort];
+			}
+			if (typeof valA === 'string' && typeof valB === 'string') {
+				valA = valA.toLowerCase();
+				valB = valB.toLowerCase();
+			}
+			if (valA < valB) return -1 * modifier;
+			if (valA > valB) return 1 * modifier;
+			return 0;
+		});
+		
 	},
 	nextGroupPage() {
 		if (this.currentGroupPage < this.totalGroupPages) {
