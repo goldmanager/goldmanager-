@@ -170,7 +170,6 @@ export default {
 	  groupsListPageSize:5,
 	  groupsCurrentPageNumer:1,
 	  groupsSearchQuery:'',
-	  groupsListCurrentPageNumber:{},
 	  groupsListSort:{},
 	  groupsListSortDir:{},
 	  groupsListQuerys:{}
