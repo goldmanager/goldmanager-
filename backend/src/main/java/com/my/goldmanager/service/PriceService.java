@@ -29,7 +29,7 @@ import com.my.goldmanager.entity.Item;
 import com.my.goldmanager.repository.ItemRepository;
 import com.my.goldmanager.rest.entity.Price;
 import com.my.goldmanager.rest.entity.PriceGroup;
-import com.my.goldmanager.rest.entity.PriceGroupMap;
+import com.my.goldmanager.rest.entity.PriceGroupList;
 import com.my.goldmanager.rest.entity.PriceList;
 import com.my.goldmanager.service.util.PriceCalculatorUtil;
 
@@ -48,22 +48,22 @@ public class PriceService {
 
 	}
 
-	public PriceGroupMap groupByMaterial() {
+	public PriceGroupList groupByMaterial() {
 		Map<String, PriceGroup> result = new TreeMap<>();
 		List<Item> items = itemRepository.findAll();
 		items.forEach(item -> addToPriceGroupsbyMaterial(item, result));
-		PriceGroupMap priceGroupMap = new PriceGroupMap();
-		priceGroupMap.setPriceGroups(result);
-		return priceGroupMap;
+		PriceGroupList priceGroupList = new PriceGroupList();
+		priceGroupList.setPriceGroups(new LinkedList<>(result.values())) ;
+		return priceGroupList;
 	}
 
-	public PriceGroupMap groupByItemType() {
+	public PriceGroupList  groupByItemType() {
 		Map<String, PriceGroup> result = new TreeMap<>();
 		List<Item> items = itemRepository.findAll();
 		items.forEach(item -> addToPriceGroupsbyItemType(item, result));
-		PriceGroupMap priceGroupMap = new PriceGroupMap();
-		priceGroupMap.setPriceGroups(result);
-		return priceGroupMap;
+		PriceGroupList priceGroupList = new PriceGroupList();
+		priceGroupList.setPriceGroups(new LinkedList<>(result.values())) ;
+		return priceGroupList;
 	}
 
 	public Optional<PriceList> listForMaterial(String materialId) {
@@ -80,6 +80,7 @@ public class PriceService {
 		PriceGroup priceGroup = priceGroupMap.get(item.getItemType().getMaterial().getName());
 		if (priceGroup == null) {
 			priceGroup = new PriceGroup();
+			priceGroup.setGroupName(item.getItemType().getMaterial().getName());
 			priceGroupMap.put(item.getItemType().getMaterial().getName(), priceGroup);
 		}
 		if (priceGroup.getPrices() == null) {
@@ -92,6 +93,7 @@ public class PriceService {
 		PriceGroup priceGroup = priceGroupMap.get(item.getItemType().getName());
 		if (priceGroup == null) {
 			priceGroup = new PriceGroup();
+			priceGroup.setGroupName(item.getItemType().getName());
 			priceGroupMap.put(item.getItemType().getName(), priceGroup);
 		}
 		if (priceGroup.getPrices() == null) {

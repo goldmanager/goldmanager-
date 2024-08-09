@@ -65,10 +65,10 @@
     </div>
 	</div>
    <div v-else >
+	<div><input v-model="groupsSearchQuery" type="text" placeholder="Search by group name"></div>
     <table>
       <thead>
         <tr>
-
           <th>Switch View Type</th>
         </tr>
       </thead>
@@ -82,52 +82,54 @@
       </tr>
       </tbody>
       </table>
-      <div v-for="(group, groupName) in priceGroups" :key="groupName">
-      <H2>{{ groupName }}</H2>
-      <table>
-      <thead>
-        <tr>
-          <th>Total Price</th>
-          <th>Total Weight</th>
-
-        </tr>
-      </thead>
-      <tbody>
-      <tr>
-        <td>{{ formatPrice(group.totalPrice) }}</td>
-        <td>{{ formatPrice(group.amount) }} Oz</td>
-
-      </tr>
-      </tbody>
-      </table>
-
-
-        <table v-if="group.prices.length >0">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Weight</th>
-            <th>Unit</th>
-            <th>Number of Items</th>
-            <th>Unit Price</th>
-            <th>Total Price </th>
-            <th>Metal</th>
-          </tr>
-        </thead>
-        <tbody>
-
-          <tr v-for="price in group.prices" :key="price.item.id">
-            <td>{{ price.item.name }}</td>
-            <td>{{ price.item.amount }}</td>
-            <td>{{ price.item.unit.name }}</td>
-            <td>{{ price.item.itemCount }}</td>
-            <td>{{ formatPrice(price.price) }}</td>
-            <td>{{ formatPrice(price.priceTotal) }}</td>
-            <td>{{ price.item.itemType.material.name }}</td>
-          </tr>
-        </tbody>
-      </table>
-      </div>
+	  
+      <div v-for="priceGroup in paginatedGroups" :key="priceGroup.groupName">
+		<H2>{{ priceGroup.groupName }}</H2>
+		<table>
+			<thead>
+				<tr>
+					<th>Total Price</th>
+					<th>Total Weight</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>{{ formatPrice(priceGroup.totalPrice) }}</td>
+					<td>{{ formatPrice(priceGroup.amount) }} Oz</td>
+				</tr>
+			</tbody>
+		</table>
+        <table v-if="priceGroup.prices.length >0">
+			<thead>
+				<tr>
+					<th>Name</th>
+					<th>Weight</th>
+					<th>Unit</th>
+					<th>Number of Items</th>
+					<th>Unit Price</th>
+					<th>Total Price </th>
+					<th>Metal</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr v-for="price in priceGroup.prices" :key="price.item.id">
+					<td>{{ price.item.name }}</td>
+					<td>{{ price.item.amount }}</td>
+					<td>{{ price.item.unit.name }}</td>
+					<td>{{ price.item.itemCount }}</td>
+					<td>{{ formatPrice(price.price) }}</td>
+					<td>{{ formatPrice(price.priceTotal) }}</td>
+					<td>{{ price.item.itemType.material.name }}</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	<div class="pagination" v-if="totalGroupPages > 0">
+		<button :class="currentGroupPage === 1 ?'pagingButton_disabled':'pagingButton'" @click="prevGroupPage" :disabled="currentGroupPage === 1">Previous</button>
+		<span>Page {{ currentGroupPage }} of {{ totalGroupPages }}</span>
+		<button  :class="currentGroupPage === totalGroupPages?'pagingButton_disabled':'pagingButton'" @click="nextGroupPage" :disabled="currentGroupPage === totalGroupPages">Next</button>
+		<span>(Items per page: {{groupsPageSize}})</span>		 
+	</div>
    </div>
     </div>
   </div>
@@ -153,7 +155,7 @@ export default {
 
       ],
       priceList: {totalPrice:0, prices:[]},
-      priceGroups:{},
+      priceGroups:[],
       metals: [],
       currentViewType: 'PriceList',
       errorMessage: '',
@@ -162,7 +164,16 @@ export default {
 	  priceListPageSize:10,
 	  currentPricePageNumber: 1,
 	  currentPriceListSortDir:'',
-	  currentPriceListSort:'name'
+	  currentPriceListSort:'name',
+	  groupsPageSize:3,
+	  groupsListPageSize:5,
+	  groupsCurrentPageNumer:1,
+	  groupsSearchQuery:'',
+	  groupsListCurrentPageNumber:{},
+	  groupsListSort:{},
+	  proupsListSortDir:{},
+	  groupsListQuerys:{}
+	  
     };
 
   },
@@ -176,6 +187,30 @@ export default {
 
   },
   computed: {
+	totalGroupPages(){
+		return Math.ceil(Object.entries(this.filteredGroups).length / this.groupsPageSize);
+	},
+	currentGroupPage() {
+			if(this.groupsCurrentPageNumer > this.totalGroupPages){
+				return 1;
+			}
+			return this.groupsCurrentPageNumer;
+	},
+	filteredGroups() {
+		if (this.groupsSearchQuery != null && this.groupsSearchQuery != '') {		
+			return this.priceGroups.filter(group =>
+			group.groupName.toLowerCase().includes(this.groupsSearchQuery.toLowerCase())
+			);
+		}
+		return this.priceGroups;
+	},
+	paginatedGroups() {
+			let start = (this.currentGroupPage - 1) * this.groupsPageSize;
+			let end = start + this.groupsPageSize;
+			
+			
+			return this.filteredGroups.slice(start, end);
+		},
 	sortedPriceList() {
 		
 		let sortedPrices =[...this.priceList.prices];
@@ -245,6 +280,18 @@ export default {
 	},
 },
   methods: {
+	nextGroupPage() {
+		if (this.currentGroupPage < this.totalGroupPages) {
+			this.groupsCurrentPageNumer = this.currentGroupPage+1;
+		}
+	},
+	prevGroupPage() {
+		
+		if (this.currentGroupPage > 1) {
+			this.groupsCurrentPageNumer = this.currentGroupPage-1;
+		}
+		
+	},		
     getCurrentFilter(){
       return localStorage.getItem("PriceMaterialFilter")?localStorage.getItem("PriceMaterialFilter"):"";
     },
@@ -267,7 +314,7 @@ export default {
     async fetchData() {
       this.errorMessage='';
       this.priceList={totalPrice:0, prices:[]};
-      this.priceGroups={};
+      this.priceGroups=[];
 
       var errorMessage="Error fetching data. Please try again later.";
 
@@ -325,6 +372,7 @@ export default {
          console.log('currentFilter:',this.currentFilter);
          const response = await axios.get(`/prices/groupBy/material`);
          this.priceGroups = response.data.priceGroups;
+		 
          console.log('priceGroups:',this.priceGroups);
 
       }
