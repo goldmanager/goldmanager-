@@ -6,4 +6,4 @@ The project contains two directories containing backend and frontend components
 - frontend/ Contains the frontend implemented in Vue3.
 # Docker
 You can build the application as Docker image by using the Dockerfile in the root directory.
-Please see also https://github.com/fg12111/goldmanager-dockercompose for an example on usage with docker compose
+Please see also https://github.com/goldmanager/goldmanager-dockercompose for an example on usage with docker compose
