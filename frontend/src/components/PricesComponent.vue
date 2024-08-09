@@ -99,6 +99,7 @@
 				</tr>
 			</tbody>
 		</table>
+		<div  v-if="priceGroup.prices.length >0"><input v-model="groupsListQuerys[priceGroup.groupName]" type="text" placeholder="Search by item name"></div>
         <table v-if="priceGroup.prices.length >0">
 			<thead>
 				<tr>
@@ -112,7 +113,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr v-for="price in priceGroup.prices" :key="price.item.id">
+				<tr v-for="price in filteredGroupPrices(priceGroup.groupName,priceGroup.prices)" :key="price.item.id">
 					<td>{{ price.item.name }}</td>
 					<td>{{ price.item.amount }}</td>
 					<td>{{ price.item.unit.name }}</td>
@@ -128,7 +129,7 @@
 		<button :class="currentGroupPage === 1 ?'pagingButton_disabled':'pagingButton'" @click="prevGroupPage" :disabled="currentGroupPage === 1">Previous</button>
 		<span>Page {{ currentGroupPage }} of {{ totalGroupPages }}</span>
 		<button  :class="currentGroupPage === totalGroupPages?'pagingButton_disabled':'pagingButton'" @click="nextGroupPage" :disabled="currentGroupPage === totalGroupPages">Next</button>
-		<span>(Items per page: {{groupsPageSize}})</span>		 
+		<span>(Price groups per page: {{groupsPageSize}})</span>		 
 	</div>
    </div>
     </div>
@@ -165,7 +166,7 @@ export default {
 	  currentPricePageNumber: 1,
 	  currentPriceListSortDir:'',
 	  currentPriceListSort:'name',
-	  groupsPageSize:3,
+	  groupsPageSize:2,
 	  groupsListPageSize:5,
 	  groupsCurrentPageNumer:1,
 	  groupsSearchQuery:'',
@@ -187,6 +188,7 @@ export default {
 
   },
   computed: {
+
 	totalGroupPages(){
 		return Math.ceil(Object.entries(this.filteredGroups).length / this.groupsPageSize);
 	},
@@ -280,6 +282,13 @@ export default {
 	},
 },
   methods: {
+	filteredGroupPrices(groupName, prices){
+	
+		if(groupName != null && groupName !='' && this.groupsListQuerys[groupName] != null && this.groupsListQuerys[groupName] != ''){
+			return prices.filter(price =>price.item.name.toLowerCase().includes(this.groupsListQuerys[groupName].toLowerCase()));	
+		}
+		return prices;
+	},
 	nextGroupPage() {
 		if (this.currentGroupPage < this.totalGroupPages) {
 			this.groupsCurrentPageNumer = this.currentGroupPage+1;
