@@ -23,7 +23,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -51,7 +50,6 @@ public class ItemType {
 	@Column
 	@Getter
 	@Setter
-	@NotNull
 	private float modifier;
 	
 	@PrePersist

@@ -18,10 +18,12 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import com.my.goldmanager.entity.Item;
 import com.my.goldmanager.repository.ItemRepository;
+import com.my.goldmanager.service.exception.ValidationException;
 
 @Service
 public class ItemService {
@@ -29,19 +31,33 @@ public class ItemService {
 	@Autowired
 	private ItemRepository repository;
 
-	public Item create(Item item) {
-		return repository.save(item);
+	public Item create(Item item) throws ValidationException {
+		if (item.getName() == null || item.getName().isBlank()) {
+			throw new ValidationException("Item name is mandatory.");
+		}
+		try {
+			return repository.save(item);
+		} catch (DataIntegrityViolationException e) {
 
+			throw new RuntimeException("An item with the same name already exists.", e);
+		}
 	}
 
 	public List<Item> list() {
 		return repository.findAll();
 	}
 
-	public Optional<Item> update(String id, Item item) {
+	public Optional<Item> update(String id, Item item) throws ValidationException {
 		if (repository.existsById(id)) {
-			item.setId(id);
-			return Optional.of(repository.save(item));
+			if (item.getName() == null || item.getName().isBlank()) {
+				throw new ValidationException("Item name is mandatory.");
+			}
+			try {
+				item.setId(id);
+				return Optional.of(repository.save(item));
+			} catch (DataIntegrityViolationException e) {
+				throw new RuntimeException("An an item type with the same name already exists.", e);
+			}
 		}
 		return Optional.empty();
 	}

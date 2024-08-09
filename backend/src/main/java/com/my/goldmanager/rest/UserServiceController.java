@@ -40,19 +40,14 @@ import com.my.goldmanager.service.UserService;
 import com.my.goldmanager.service.exception.BadRequestException;
 import com.my.goldmanager.service.exception.ValidationException;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-
 @RestController
 @RequestMapping("/api/userService")
 public class UserServiceController {
 
 	@Autowired
 	private UserService userService;
-	
 
 	@PostMapping
-	@Operation(security = @SecurityRequirement(name = "bearerAuth"))
 	public ResponseEntity<Void> createUser(@RequestBody CreateUserRequest createUserRequest) {
 
 		try {
@@ -65,7 +60,6 @@ public class UserServiceController {
 	}
 
 	@DeleteMapping(path = "/deleteuser/{userId}")
-	@Operation(security = @SecurityRequirement(name = "bearerAuth"))
 	public ResponseEntity<Void> DeleteUserName(@PathVariable("userId") String userId) {
 
 		try {
@@ -79,7 +73,6 @@ public class UserServiceController {
 	}
 
 	@PutMapping(path = "/updatePassword/{userId}")
-	@Operation(security = @SecurityRequirement(name = "bearerAuth"))
 	public ResponseEntity<Void> updateUserPassword(@PathVariable("userId") String userId,
 			@RequestBody UpdateUserPasswordRequest updateUserPasswordRequest) {
 
@@ -94,7 +87,6 @@ public class UserServiceController {
 	}
 
 	@PutMapping(path = "/setStatus/{userId}")
-	@Operation(security = @SecurityRequirement(name = "bearerAuth"))
 	public ResponseEntity<Void> updateUserUserStatus(@PathVariable("userId") String userId,
 			@RequestBody UpdateUserStatusRequest updateUserStatusRequest) {
 
@@ -110,7 +102,6 @@ public class UserServiceController {
 	}
 
 	@GetMapping
-	@Operation(security = @SecurityRequirement(name = "bearerAuth"))
 	public ResponseEntity<ListUserResponse> listAll() {
 		ListUserResponse result = new ListUserResponse();
 		result.setUserInfos(new LinkedList<>());

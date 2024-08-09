@@ -24,12 +24,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.my.goldmanager.rest.entity.Price;
-import com.my.goldmanager.rest.entity.PriceGroupMap;
+import com.my.goldmanager.rest.entity.PriceGroupList;
 import com.my.goldmanager.rest.entity.PriceList;
 import com.my.goldmanager.service.PriceService;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @RestController
 @RequestMapping("/api/prices")
@@ -39,7 +36,6 @@ public class PriceController {
 	private PriceService priceService;
 
 	@GetMapping
-	@Operation(security = @SecurityRequirement(name = "bearerAuth"))
 	public ResponseEntity<PriceList> listPrices() {
 
 		PriceList priceList = priceService.listAll();
@@ -47,7 +43,6 @@ public class PriceController {
 	}
 
 	@GetMapping(path = "/item/{id}")
-	@Operation(security = @SecurityRequirement(name = "bearerAuth"))
 	public ResponseEntity<Price> getPriceForItem(@PathVariable("id") String itemId) {
 		Optional<Price> result = priceService.getPriceofItem(itemId);
 		if (result.isPresent()) {
@@ -57,7 +52,6 @@ public class PriceController {
 	}
 
 	@GetMapping(path = "/material/{id}")
-	@Operation(security = @SecurityRequirement(name = "bearerAuth"))
 	public ResponseEntity<PriceList> listPricesForMaterial(@PathVariable("id") String materialId) {
 		Optional<PriceList> result = priceService.listForMaterial(materialId);
 		if (result.isPresent()) {
@@ -67,15 +61,13 @@ public class PriceController {
 	}
 
 	@GetMapping(path = "/groupBy/material")
-	@Operation(security = @SecurityRequirement(name = "bearerAuth"))
-	public ResponseEntity<PriceGroupMap> groupByMaterial() {
+	public ResponseEntity<PriceGroupList> groupByMaterial() {
 
 		return ResponseEntity.ok(priceService.groupByMaterial());
 	}
 
 	@GetMapping(path = "/groupBy/itemType")
-	@Operation(security = @SecurityRequirement(name = "bearerAuth"))
-	public ResponseEntity<PriceGroupMap> groupByItemtype() {
+	public ResponseEntity<PriceGroupList> groupByItemtype() {
 
 		return ResponseEntity.ok(priceService.groupByItemType());
 	}

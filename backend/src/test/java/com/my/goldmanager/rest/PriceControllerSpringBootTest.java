@@ -31,7 +31,8 @@ import com.my.goldmanager.repository.ItemTypeRepository;
 import com.my.goldmanager.repository.MaterialRepository;
 import com.my.goldmanager.repository.UnitRepository;
 import com.my.goldmanager.rest.entity.Price;
-import com.my.goldmanager.rest.entity.PriceGroupMap;
+import com.my.goldmanager.rest.entity.PriceGroup;
+import com.my.goldmanager.rest.entity.PriceGroupList;
 import com.my.goldmanager.rest.entity.PriceList;
 import com.my.goldmanager.service.AuthenticationService;
 import com.my.goldmanager.service.UserService;
@@ -72,6 +73,9 @@ public class PriceControllerSpringBootTest {
 
 	List<Item> items;
 
+	private static PriceGroup getPriceGroup(String groupName, PriceGroupList priceGroupList) {
+		return priceGroupList.getPriceGroups().stream().filter(pg->groupName.equals(pg.getGroupName())).distinct().findFirst().orElseThrow();
+	}
 	@BeforeEach
 	public void setUp() {
 		TestHTTPClient.setup(userService, authenticationService);
@@ -195,7 +199,7 @@ public class PriceControllerSpringBootTest {
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON)).andReturn().getResponse()
 				.getContentAsString();
 
-		PriceGroupMap result = objectMapper.readValue(body, PriceGroupMap.class);
+		PriceGroupList result = objectMapper.readValue(body, PriceGroupList.class);
 		assertNotNull(result);
 		assertEquals(Long.valueOf(itemTypeRepository.count()).intValue(), result.getPriceGroups().size());
 		List<ItemType> itemtypes = itemTypeRepository.findAll();
@@ -203,14 +207,15 @@ public class PriceControllerSpringBootTest {
 			List<Item> expectedItems = items.stream()
 					.filter(item -> item.getItemType().getId().equals(itemtype.getId())).toList();
 
-			assertEquals(expectedItems.size(), result.getPriceGroups().get(itemtype.getName()).getPrices().size());
-			assertEquals(getAmmount(expectedItems), result.getPriceGroups().get(itemtype.getName()).getAmount());
+			PriceGroup actualPriceGroup = getPriceGroup(itemtype.getName(), result);
+			assertEquals(expectedItems.size(), actualPriceGroup.getPrices().size());
+			assertEquals(getAmmount(expectedItems), actualPriceGroup.getAmount());
 			assertEquals(getPriceSummary(expectedItems),
-					result.getPriceGroups().get(itemtype.getName()).getTotalPrice());
+					actualPriceGroup.getTotalPrice());
 
 			for (int current = 0; current < expectedItems.size(); current++) {
 				Item expected = expectedItems.get(current);
-				Price actual = result.getPriceGroups().get(itemtype.getName()).getPrices().get(current);
+				Price actual = actualPriceGroup.getPrices().get(current);
 				assertEquals(getSingleItemPrice(expected), actual.getPrice());
 				assertEquals(getTotalItemPrice(expected), actual.getPriceTotal());
 				assertEquals(expected.getName(), actual.getItem().getName());
@@ -226,7 +231,7 @@ public class PriceControllerSpringBootTest {
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON)).andReturn().getResponse()
 				.getContentAsString();
 
-		PriceGroupMap result = objectMapper.readValue(body, PriceGroupMap.class);
+		PriceGroupList result = objectMapper.readValue(body, PriceGroupList.class);
 		assertNotNull(result);
 		assertEquals(2, result.getPriceGroups().size());
 
@@ -234,26 +239,27 @@ public class PriceControllerSpringBootTest {
 				.filter(item -> item.getItemType().getMaterial().getId().equals(gold.getId())).toList();
 		List<Item> silverItems = items.stream()
 				.filter(item -> item.getItemType().getMaterial().getId().equals(silver.getId())).toList();
-
-		assertEquals(goldItems.size(), result.getPriceGroups().get(gold.getName()).getPrices().size());
-		assertEquals(getAmmount(goldItems), result.getPriceGroups().get(gold.getName()).getAmount());
-		assertEquals(getPriceSummary(goldItems), result.getPriceGroups().get(gold.getName()).getTotalPrice());
+		
+		PriceGroup goldPriceGroup = getPriceGroup(gold.getName(), result);
+		assertEquals(goldItems.size(), goldPriceGroup.getPrices().size());
+		assertEquals(getAmmount(goldItems), goldPriceGroup.getAmount());
+		assertEquals(getPriceSummary(goldItems), goldPriceGroup.getTotalPrice());
 
 		for (int current = 0; current < goldItems.size(); current++) {
 			Item expected = goldItems.get(current);
-			Price actual = result.getPriceGroups().get(gold.getName()).getPrices().get(current);
+			Price actual = goldPriceGroup.getPrices().get(current);
 			assertEquals(getSingleItemPrice(expected), actual.getPrice());
 			assertEquals(getTotalItemPrice(expected), actual.getPriceTotal());
 			assertEquals(expected.getName(), actual.getItem().getName());
 		}
-
-		assertEquals(silverItems.size(), result.getPriceGroups().get(silver.getName()).getPrices().size());
-		assertEquals(getAmmount(silverItems), result.getPriceGroups().get(silver.getName()).getAmount());
-		assertEquals(getPriceSummary(silverItems), result.getPriceGroups().get(silver.getName()).getTotalPrice());
+		PriceGroup silverPriceGroup = getPriceGroup(silver.getName(), result);
+		assertEquals(silverItems.size(), silverPriceGroup.getPrices().size());
+		assertEquals(getAmmount(silverItems), silverPriceGroup.getAmount());
+		assertEquals(getPriceSummary(silverItems), silverPriceGroup.getTotalPrice());
 
 		for (int current = 0; current < silverItems.size(); current++) {
 			Item expected = silverItems.get(current);
-			Price actual = result.getPriceGroups().get(silver.getName()).getPrices().get(current);
+			Price actual = silverPriceGroup.getPrices().get(current);
 			assertEquals(getSingleItemPrice(expected), actual.getPrice());
 			assertEquals(expected.getName(), actual.getItem().getName());
 		}

@@ -20,6 +20,10 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class PriceGroup {
+	
+	@Getter
+	@Setter
+	private String groupName;
 	@Getter
 	@Setter
 	private List<Price> prices;
