@@ -33,7 +33,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.my.goldmanager.encoder.SHA3_256HexEncoder;
+import com.my.goldmanager.encoder.PasswordEncoderImpl;
 import com.my.goldmanager.service.CustomUserDetailsService;
 
 import lombok.RequiredArgsConstructor;
@@ -72,7 +72,7 @@ public class DefaultSecurityConfiguration {
 
 	@Bean
 	public PasswordEncoder passwordEncoder() {
-		return new SHA3_256HexEncoder();
+		return new PasswordEncoderImpl();
 	}
 
 	@Bean

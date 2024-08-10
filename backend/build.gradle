@@ -60,6 +60,9 @@ dependencies {
     testImplementation 'net.bytebuddy:byte-buddy-agent'
     testImplementation 'com.h2database:h2'
     
+    testRuntimeOnly 'org.bouncycastle:bcprov-jdk18on:1.78.1'
+    testRuntimeOnly 'org.bouncycastle:bcpkix-jdk18on:1.78.1'
+    
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
 }
