@@ -20,7 +20,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.my.goldmanager.encoder.SHA3_256HexEncoder;
+import com.my.goldmanager.encoder.PasswordEncoderImpl;
 import com.my.goldmanager.entity.UserLogin;
 import com.my.goldmanager.repository.UserLoginRepository;
 import com.my.goldmanager.rest.request.CreateUserRequest;
@@ -35,7 +35,7 @@ import com.my.goldmanager.service.UserService;
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 public class UserServiceControllerSpringBootTest {
-	private final SHA3_256HexEncoder passwordEncoder = new SHA3_256HexEncoder();
+	private final PasswordEncoderImpl passwordEncoder = new PasswordEncoderImpl();
 
 	@Autowired
 	private UserService userService;
@@ -76,7 +76,7 @@ public class UserServiceControllerSpringBootTest {
 		UserLogin result = optional.get();
 		assertEquals(createUserRequest.getUsername(), result.getUserid());
 		assertTrue(result.isActive());
-		assertEquals(passwordEncoder.encode(createUserRequest.getPassword()), result.getPassword());
+		assertTrue(passwordEncoder.matches(createUserRequest.getPassword(),result.getPassword()));
 	}
 
 	@Test
@@ -119,7 +119,7 @@ public class UserServiceControllerSpringBootTest {
 		UserLogin result = optional.get();
 		assertEquals(userLogin.getUserid(), result.getUserid());
 		assertTrue(result.isActive());
-		assertEquals(passwordEncoder.encode(updateUserPasswordRequest.getNewPassword()), result.getPassword());
+		assertTrue(passwordEncoder.matches(updateUserPasswordRequest.getNewPassword(),result.getPassword()));
 	}
 
 	@Test
@@ -204,7 +204,7 @@ public class UserServiceControllerSpringBootTest {
 				.andReturn().getResponse().getContentAsString();
 
 		ErrorResponse errorResponse = objectMapper.readValue(body, ErrorResponse.class);
-		assertEquals("Username and newPassword are mandatory", errorResponse.getMessage());
+		assertEquals("Password is mandatory and must not contain spaces.", errorResponse.getMessage());
 		assertEquals(400, errorResponse.getStatus());
 
 		updateUserPasswordRequest = new UpdateUserPasswordRequest();
@@ -218,7 +218,7 @@ public class UserServiceControllerSpringBootTest {
 				.andReturn().getResponse().getContentAsString();
 
 		errorResponse = objectMapper.readValue(body, ErrorResponse.class);
-		assertEquals("Username and newPassword are mandatory", errorResponse.getMessage());
+		assertEquals("Password is mandatory and must not contain spaces.", errorResponse.getMessage());
 		assertEquals(400, errorResponse.getStatus());
 
 	}
@@ -273,7 +273,7 @@ public class UserServiceControllerSpringBootTest {
 				.andReturn().getResponse().getContentAsString();
 
 		ErrorResponse errorResponse = objectMapper.readValue(body, ErrorResponse.class);
-		assertEquals("Username is mandatory and must not contain spaces.", errorResponse.getMessage());
+		assertEquals("Username is mandatory, must not contain spaces and it's size must be between 1 and 255 alphanumeric characters.", errorResponse.getMessage());
 		assertEquals(400, errorResponse.getStatus());
 
 		createUserRequest = new CreateUserRequest();
@@ -287,7 +287,7 @@ public class UserServiceControllerSpringBootTest {
 				.andReturn().getResponse().getContentAsString();
 
 		errorResponse = objectMapper.readValue(body, ErrorResponse.class);
-		assertEquals("Username is mandatory and must not contain spaces.", errorResponse.getMessage());
+		assertEquals("Username is mandatory, must not contain spaces and it's size must be between 1 and 255 alphanumeric characters.", errorResponse.getMessage());
 		assertEquals(400, errorResponse.getStatus());
 	}
 
