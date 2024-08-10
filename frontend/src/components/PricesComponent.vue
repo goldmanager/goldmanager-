@@ -113,7 +113,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr v-for="price in filteredGroupPrices(priceGroup.groupName,priceGroup.prices)" :key="price.item.id">
+				<tr v-for="price in filteredGroupPrices(priceGroup.groupName)" :key="price.item.id">
 					<td>{{ price.item.name }}</td>
 					<td>{{ price.item.amount }}</td>
 					<td>{{ price.item.unit.name }}</td>
@@ -172,7 +172,8 @@ export default {
 	  groupsSearchQuery:'',
 	  groupsListSort:{},
 	  groupsListSortDir:{},
-	  groupsListQuerys:{}
+	  groupsListQuerys:{},
+
 	  
     };
 
@@ -187,7 +188,7 @@ export default {
 
   },
   computed: {
-
+	
 	totalGroupPages(){
 		return Math.ceil(Object.entries(this.filteredGroups).length / this.groupsPageSize);
 	},
@@ -281,12 +282,21 @@ export default {
 	},
 },
   methods: {
-	filteredGroupPrices(groupName, prices){
-	
-		if(groupName != null && groupName !='' && this.groupsListQuerys[groupName] != null && this.groupsListQuerys[groupName] != ''){
-			return this.sortedGroupPriceList(groupName,prices).filter(price =>price.item.name.toLowerCase().includes(this.groupsListQuerys[groupName].toLowerCase()));	
+	findPricesGroupforPriceGroupName(priceGroupName){
+		if(priceGroupName != null && priceGroupName !=''){
+			return this.priceGroups.find(pg=>pg.groupName === priceGroupName);
 		}
-		return this.sortedGroupPriceList(groupName,prices);
+		return null;
+	},
+	filteredGroupPrices(groupName){
+		let pg = this.findPricesGroupforPriceGroupName(groupName);
+		if(!pg){
+			throw new Error("invalid group name");
+		}
+		if(this.groupsListQuerys[pg.groupName] != null && this.groupsListQuerys[pg.groupName] != ''){
+			return this.sortedGroupPriceList(pg.groupName,pg.prices).filter(price =>price.item.name.toLowerCase().includes(this.groupsListQuerys[pg.groupName].toLowerCase()));	
+		}
+		return this.sortedGroupPriceList(pg.groupName,pg.prices);
 	},
 	
 	getGroupPricesSortForGroup(groupName){ 
@@ -301,12 +311,15 @@ export default {
 		}
 		return this.groupsListSortDir[groupName];
 	},	
-	sortGroupPricesBy(column, groupName){			
-			if (this.getGroupPricesSortForGroup(groupName) === column) {
-				this.groupsListSortDir[groupName] = this.getGroupPricesSortDirForGroup(groupName)=== 'asc' ? 'desc' : 'asc';
-						
+	sortGroupPricesBy(column, groupName){
+		let pg = this.findPricesGroupforPriceGroupName(groupName);
+		if(!pg){
+			throw new Error("invalid group name");
+		}			
+		if (this.getGroupPricesSortForGroup(groupName) === column) {
+			this.groupsListSortDir[groupName] = this.getGroupPricesSortDirForGroup(groupName)=== 'asc' ? 'desc' : 'asc';
 			}
-			this.groupsListSort[groupName]=column;
+		this.groupsListSort[groupName]=column;
 				
 	},
 	sortedGroupPriceList(groupName, prices) {
@@ -387,7 +400,7 @@ export default {
       this.errorMessage='';
       this.priceList={totalPrice:0, prices:[]};
       this.priceGroups=[];
-
+	  this.priceGroupNames=[];
       var errorMessage="Error fetching data. Please try again later.";
 
       if(this.currentViewType === "PriceList"){
@@ -444,7 +457,7 @@ export default {
          console.log('currentFilter:',this.currentFilter);
          const response = await axios.get(`/prices/groupBy/material`);
          this.priceGroups = response.data.priceGroups;
-		 
+		 this.priceGroups.forEach(pg=>this.priceGroupNames.push(pg.getGroupName));
          console.log('priceGroups:',this.priceGroups);
 
       }
