@@ -1,5 +1,6 @@
 import axios from 'axios';
 import router from '@/router';
+import store from '@/store';
 import { jwtDecode } from 'jwt-decode';
 
 function isTokenExpiringSoon() {
@@ -65,13 +66,15 @@ instance.interceptors.response.use(response => {
 }, error => {
 
 	if (error.response && error.response.status === 403) {
-
+		
+		sessionStorage.removeItem('jwt-token');
+		sessionStorage.removeItem('username');
+		sessionStorage.removeItem('jwtExp');
+		store.dispatch('logout');
 		if (router.currentRoute.path !== '/login') {
-			sessionStorage.removeItem('jwt-token');
-			sessionStorage.removeItem('username');
-			sessionStorage.removeItem('jwtExp');
 			router.push({ path: '/login' });
 		}
+	
 	}
 	return Promise.reject(error);
 });

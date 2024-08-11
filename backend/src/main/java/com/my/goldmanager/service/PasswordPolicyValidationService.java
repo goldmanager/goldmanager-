@@ -12,21 +12,19 @@
    See the License for the specific language governing permissions and
  * 
  */
-package com.my.goldmanager.encoder;
+package com.my.goldmanager.service;
 
-import org.apache.commons.codec.digest.DigestUtils;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import com.my.goldmanager.service.exception.ValidationException;
 
-public class SHA3_256HexEncoder implements PasswordEncoder {
+/**
+ * Validates the given password according to its implemented password policy
+ */
+public interface PasswordPolicyValidationService {
 
-	@Override
-	public boolean matches(CharSequence rawPassword, String encodedPassword) {
-		return encode(rawPassword.toString()).equals(encodedPassword);
-	}
-
-	@Override
-	public String encode(CharSequence rawPassword) {
-		return DigestUtils.sha3_256Hex(rawPassword.toString());
-	}
-
+	/**
+	 * Validates that the given password is  valid according to implemented password validity and throws {@link ValidationException} containing the violated policy terms.
+	 * @param password
+	 * @throws ValidationException
+	 */
+	void validate(String password) throws ValidationException;
 }

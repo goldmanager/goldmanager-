@@ -22,7 +22,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import com.my.goldmanager.encoder.SHA3_256HexEncoder;
+import com.my.goldmanager.encoder.PasswordEncoderImpl;
 import com.my.goldmanager.entity.UserLogin;
 import com.my.goldmanager.repository.UserLoginRepository;
 import com.my.goldmanager.service.exception.ValidationException;
@@ -30,8 +30,10 @@ import com.my.goldmanager.service.exception.ValidationException;
 @Service
 public class UserService {
 
-	private final SHA3_256HexEncoder passwordEncoder = new SHA3_256HexEncoder();
+	private final PasswordEncoderImpl passwordEncoder = new PasswordEncoderImpl();
 
+	@Autowired
+	private PasswordPolicyValidationService passwordPolicyValidationService;
 	@Autowired
 	private AuthenticationService authenticationService;
 	@Autowired
@@ -46,12 +48,10 @@ public class UserService {
 	 */
 	public void create(String username, String password) throws ValidationException {
 
-		if (username == null || username.isBlank() || username.trim().contains(" ")) {
-			throw new ValidationException("Username is mandatory and must not contain spaces.");
+		if (username == null || username.isBlank() || username.trim().contains(" ") || username.length()>255) {
+			throw new ValidationException("Username is mandatory, must not contain spaces and it's size must be between 1 and 255 alphanumeric characters.");
 		}
-		if (password == null || password.isBlank() || password.trim().contains(" ")) {
-			throw new ValidationException("Password is mandatory and must not contain spaces.");
-		}
+		passwordPolicyValidationService.validate(password);
 		if (userLoginRepository.existsById(username.trim())) {
 			throw new ValidationException("Username '" + username.trim() + "' already exists.");
 		}
@@ -104,9 +104,10 @@ public class UserService {
 	 */
 	public boolean updatePassword(String username, String newPassword) throws ValidationException {
 
-		if (username == null || username.isBlank() || newPassword == null || newPassword.isBlank()) {
-			throw new ValidationException("Username and newPassword are mandatory");
+		if (username == null || username.isBlank()) {
+			throw new ValidationException("Username is mandatory");
 		}
+		passwordPolicyValidationService.validate(newPassword);
 		Optional<UserLogin> userlogin = userLoginRepository.findById(username);
 		if (userlogin.isPresent()) {
 			UserLogin login = userlogin.get();

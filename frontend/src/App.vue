@@ -66,12 +66,47 @@ input[type="text"], input[type="password"], input[type="number"] , input[type="d
   box-shadow: 0 5px 8px rgba(0, 0, 0, 0.1);
   cursor: pointer;
 }
+
+.pagingButton{
+  padding: 2px;
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 2px;
+  box-shadow: 0 5px 8px rgba(0, 0, 0, 0.1);
+  margin-right: 6px;
+  cursor: pointer;
+}
+.pagingButton_disabled{
+  padding: 2px;
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 2px;
+  box-shadow: 0 5px 8px rgba(0, 0, 0, 0.1);
+  margin-right: 6px;
+  cursor: not-allowed;
+}
 .actionbutton_disabled{
   padding: 10px;
   background-color: rgba(255, 255, 255, 0.8);
   border: 2px;
   box-shadow: 0 5px 8px rgba(0, 0, 0, 0.1);
+ 
+  cursor: not-allowed;
 
+}
+.highlight_saved{
+	background-color: green;
+	transition: background-color 0.5s ease;
+}
+.highlight_deleted{
+	background-color: blue;
+	transition: background-color 0.5s ease;
+}
+.highlight_error{
+	background-color: darkred;
+	transition: background-color 0.5s ease;
+}
+.highlight_editmode{
+	background-color: gold;
+	transition: background-color 0.5s ease;
 }
 table {
   width: 100%;
