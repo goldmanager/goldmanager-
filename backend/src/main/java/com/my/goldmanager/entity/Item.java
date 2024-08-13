@@ -62,6 +62,12 @@ public class Item {
 	@Setter
 	@Getter
 	private Unit unit;
+	
+	@ManyToOne
+	@JoinColumn(name = "itemstorage")
+	@Setter
+	@Getter
+	private ItemStorage itemStorage;
 
 	@PrePersist
     protected void onCreate() {

@@ -12,7 +12,7 @@
    See the License for the specific language governing permissions and
  * 
  */
-package com.my.goldmanager.rest;
+package com.my.goldmanager.controller;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,63 +31,55 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
 
-import com.my.goldmanager.entity.Item;
+import com.my.goldmanager.entity.ItemStorage;
 import com.my.goldmanager.rest.response.ErrorResponse;
-import com.my.goldmanager.service.ItemService;
+import com.my.goldmanager.service.ItemStorageService;
 import com.my.goldmanager.service.exception.BadRequestException;
 
 @RestController
-@RequestMapping("/api/items")
-
-public class ItemController {
+@RequestMapping("/api/itemStorages")
+/**
+ * Rest API controller for ItemStorages
+ */
+public class ItemStorageController {
 
 	@Autowired
-	private ItemService itemService;
+	private ItemStorageService itemStorageService;
 
 	/**
-	 * Create Item
+	 * Create the provided {@link ItemStorage}.
 	 * 
-	 * @param item
+	 * @param itemStorage
 	 * @return
 	 */
 	@PostMapping
-	public ResponseEntity<Item> create(@RequestBody Item item) {
+	public ResponseEntity<ItemStorage> create(@RequestBody ItemStorage itemStorage) {
 		try {
-			return ResponseEntity.status(HttpStatus.CREATED).body(itemService.create(item));
+			return ResponseEntity.status(HttpStatus.CREATED).body(itemStorageService.create(itemStorage));
 		} catch (Exception e) {
 			throw new BadRequestException(e.getMessage(), e);
 		}
 	}
 
 	/**
-	 * Update Item
+	 * Lists all ItemStorages
 	 * 
-	 * @param id
-	 * @param item
 	 * @return
 	 */
-	@PutMapping(path = "/{id}")
-	public ResponseEntity<Item> update(@PathVariable(name = "id") String id, @RequestBody Item item) {
-		try {
-			Optional<Item> result = itemService.update(id, item);
-			if (result.isPresent()) {
-				return ResponseEntity.ok(result.get());
-			}
-			return ResponseEntity.notFound().build();
-		} catch (Exception e) {
-			throw new BadRequestException(e.getMessage(), e);
-		}
+	@GetMapping
+	public List<ItemStorage> list() {
+		return itemStorageService.listAll();
 	}
 
 	/**
-	 * Gets the item by provided id
+	 * Returns {@link ItemStorage} by Id
 	 * 
 	 * @param id
 	 * @return
 	 */
 	@GetMapping(path = "/{id}")
-	public ResponseEntity<Item> get(@PathVariable(name = "id") String id) {
-		Optional<Item> result = itemService.getById(id);
+	public ResponseEntity<ItemStorage> getById(@PathVariable(name = "id") String id) {
+		Optional<ItemStorage> result = itemStorageService.getById(id);
 		if (result.isPresent()) {
 			return ResponseEntity.ok(result.get());
 		}
@@ -95,27 +87,37 @@ public class ItemController {
 	}
 
 	/**
-	 * Deletes the item with provided id
+	 * Delete ItemStorage by Id
 	 * 
 	 * @param id
 	 * @return
 	 */
 	@DeleteMapping(path = "/{id}")
-	public ResponseEntity<Void> delete(@PathVariable(name = "id") String id) {
-		if (itemService.delete(id)) {
+	public ResponseEntity<Void> delete(@PathVariable("id") String id) {
+		if (itemStorageService.deleteById(id)) {
 			return ResponseEntity.noContent().build();
 		}
 		return ResponseEntity.notFound().build();
 	}
 
 	/**
-	 * List all Items
-	 * 
+	 * Update the given ItemStorage
+	 * @param id
+	 * @param itemStorage
 	 * @return
 	 */
-	@GetMapping
-	public List<Item> list() {
-		return itemService.list();
+	@PutMapping(path = "/{id}")
+	public ResponseEntity<ItemStorage> update(@PathVariable("id") String id, @RequestBody ItemStorage itemStorage) {
+		itemStorage.setId(id);
+		try {
+			Optional<ItemStorage> result = itemStorageService.update(itemStorage);
+			if (result.isPresent()) {
+				return ResponseEntity.ok(result.get());
+			}
+			return ResponseEntity.notFound().build();
+		} catch (Exception e) {
+			throw new BadRequestException(e.getMessage(), e);
+		}
 	}
 
 	@ExceptionHandler(BadRequestException.class)
