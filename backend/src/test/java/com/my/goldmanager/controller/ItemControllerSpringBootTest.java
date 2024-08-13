@@ -3,6 +3,7 @@ package com.my.goldmanager.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -24,10 +25,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.my.goldmanager.entity.Item;
+import com.my.goldmanager.entity.ItemStorage;
 import com.my.goldmanager.entity.ItemType;
 import com.my.goldmanager.entity.Material;
 import com.my.goldmanager.entity.Unit;
 import com.my.goldmanager.repository.ItemRepository;
+import com.my.goldmanager.repository.ItemStorageRepository;
 import com.my.goldmanager.repository.ItemTypeRepository;
 import com.my.goldmanager.repository.MaterialRepository;
 import com.my.goldmanager.repository.UnitRepository;
@@ -56,6 +59,9 @@ public class ItemControllerSpringBootTest {
 
 	@Autowired
 	private ItemRepository itemRepository;
+	
+	@Autowired
+	private ItemStorageRepository itemStorageRepository;
 
 	@Autowired
 	private MockMvc mockMvc;
@@ -72,6 +78,8 @@ public class ItemControllerSpringBootTest {
 	private ItemType goldBar;
 	private ItemType silverBar;
 
+	private ItemStorage myItemStorage;
+	
 	@BeforeEach
 	public void setUp() {
 		TestHTTPClient.setup(userService,authenticationService);
@@ -110,6 +118,11 @@ public class ItemControllerSpringBootTest {
 
 		silverBar = itemTypeRepository.save(itemType);
 
+		myItemStorage = new ItemStorage();
+		myItemStorage.setName("MyStorage");
+		myItemStorage.setDescription("Test Storage");
+		
+		myItemStorage = itemStorageRepository.save(myItemStorage);
 	}
 
 	@AfterEach
@@ -118,10 +131,12 @@ public class ItemControllerSpringBootTest {
 		itemTypeRepository.deleteAll();
 		materialRepository.deleteAll();
 		unitRepository.deleteAll();
+		itemStorageRepository.deleteAll();
 		gold = null;
 		silver = null;
 		goldBar = null;
 		silverBar = null;
+		myItemStorage = null;
 		TestHTTPClient.cleanup();
 	}
 
@@ -135,10 +150,11 @@ public class ItemControllerSpringBootTest {
 		goldbar1oz.setUnit(oz);
 		goldbar1oz.setName("1 oz Goldbar");
 		goldbar1oz.setItemType(goldBar);
-
+		goldbar1oz.setItemStorage(myItemStorage);
+		
 		itemRepository.save(goldbar1oz);
 		items.add(goldbar1oz);
-
+		
 		Item silverbar1oz = new Item();
 		silverbar1oz.setAmount(1);
 		silverbar1oz.setItemCount(1);
@@ -154,7 +170,8 @@ public class ItemControllerSpringBootTest {
 		goldbar100gramm.setUnit(gramm);
 		goldbar100gramm.setName("100 gramm Goldbar");
 		goldbar100gramm.setItemType(goldBar);
-
+		goldbar100gramm.setItemStorage(myItemStorage);
+		
 		itemRepository.save(goldbar100gramm);
 		items.add(goldbar100gramm);
 
@@ -188,6 +205,16 @@ public class ItemControllerSpringBootTest {
 			assertEquals(expected.getItemType().getMaterial().getName(), result.getItemType().getMaterial().getName());
 			assertEquals(expected.getItemType().getMaterial().getPrice(),
 					result.getItemType().getMaterial().getPrice());
+			
+			if(expected.getItemStorage() != null) {
+				assertEquals(expected.getItemStorage().getId(), result.getItemStorage().getId());
+				assertEquals(expected.getItemStorage().getName(), result.getItemStorage().getName());
+				assertEquals(expected.getItemStorage().getDescription(), result.getItemStorage().getDescription());
+			}
+			else {
+				assertNull(result.getItemStorage());
+			}
+			
 		}
 
 	}
