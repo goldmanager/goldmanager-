@@ -9,7 +9,7 @@
       <thead>
         <tr>
           <th>Total Price</th>
-          <th>Filter by Metal</th>
+          <th>Filter by</th>
           <th>Switch View Type</th>
         </tr>
       </thead>
@@ -17,9 +17,9 @@
       <tr>
         <td>{{ formatPrice(priceList.totalPrice) }}</td>
         <td>
-        <select id="metals" v-model="currentFilter" @change="setCurrentFilter($event)" >
+        <select id="filters" v-model="currentFilter" @change="setCurrentFilter($event)" >
           <option value="">None</option>
-          <option v-for="metal in metals" :key="metal.id" :value="metal.id">{{ metal.name }}</option>
+          <option v-for="filter in filters"  :key="filter.id" :value="filter.type+':'+filter.id">{{ filter.typeName+ ": " + filter.name }}</option>
         </select>
         </td>
         <td>
@@ -41,6 +41,7 @@
             <th @click="sortPriceListBy('price')">Unit Price <span v-if="currentPriceListSort === 'price'">{{ currentPriceListSortDir === 'asc' ? '▲' : '▼' }}</span></th>
             <th @click="sortPriceListBy('priceTotal')">Total Price <span v-if="currentPriceListSort === 'priceTotal'">{{ currentPriceListSortDir === 'asc' ? '▲' : '▼' }}</span></th>
             <th @click="sortPriceListBy('metal')">Metal <span v-if="currentPriceListSort === 'metal'">{{ currentPriceListSortDir === 'asc' ? '▲' : '▼' }}</span></th>
+			<th @click="sortPriceListBy('itemStorage')">Item Storage <span v-if="currentPriceListSort === 'itemStorage'">{{ currentPriceListSortDir === 'asc' ? '▲' : '▼' }}</span></th>
           </tr>
         </thead>
         <tbody>
@@ -53,6 +54,7 @@
             <td>{{ formatPrice(price.price) }}</td>
             <td>{{ formatPrice(price.priceTotal) }}</td>
             <td>{{ price.item.itemType.material.name }}</td>
+			<td>{{ price.item.itemStorage?price.item.itemStorage.name:'' }}</td>
           </tr>
         </tbody>
       </table>
@@ -110,6 +112,7 @@
 					<th @click="sortGroupPricesBy('price',priceGroup.groupName)">Unit Price <span v-if="getGroupPricesSortForGroup(priceGroup.groupName) === 'price'">{{ getGroupPricesSortDirForGroup(priceGroup.groupName) === 'asc' ? '▲' : '▼' }}</span></th>
 					<th @click="sortGroupPricesBy('priceTotal',priceGroup.groupName)">Total Price <span v-if="getGroupPricesSortForGroup(priceGroup.groupName) === 'priceTotal'">{{ getGroupPricesSortDirForGroup(priceGroup.groupName) === 'asc' ? '▲' : '▼' }}</span></th>
 					<th @click="sortGroupPricesBy('metal',priceGroup.groupName)">Metal  <span v-if="getGroupPricesSortForGroup(priceGroup.groupName) === 'metal'">{{ getGroupPricesSortDirForGroup(priceGroup.groupName) === 'asc' ? '▲' : '▼' }}</span></th>
+					<th @click="sortGroupPricesBy('itemStorage',priceGroup.groupName)">Item Storage  <span v-if="getGroupPricesSortForGroup(priceGroup.groupName) === 'itemStorage'">{{ getGroupPricesSortDirForGroup(priceGroup.groupName) === 'asc' ? '▲' : '▼' }}</span></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -121,6 +124,7 @@
 					<td>{{ formatPrice(price.price) }}</td>
 					<td>{{ formatPrice(price.priceTotal) }}</td>
 					<td>{{ price.item.itemType.material.name }}</td>
+					<td>{{ price.item.itemStorage ? price.item.itemStorage.name : '' }}</td>
 				</tr>
 			</tbody>
 		</table>
@@ -157,7 +161,7 @@ export default {
       ],
       priceList: {totalPrice:0, prices:[]},
       priceGroups:[],
-      metals: [],
+      filters: [],
       currentViewType: 'PriceList',
       errorMessage: '',
       currentFilter: '',
@@ -240,6 +244,10 @@ export default {
 			else if (this.currentPriceListSort === 'metal') {
 				valA = a.item.itemType.material.name;
 				valB = b.item.itemType.material.name;
+			}
+			else if (this.currentPriceListSort === 'itemStorage') {
+				valA = a.item.itemStorage ? a.item.itemStorage.name: ''; 
+				valB = b.item.itemStorage ? b.item.itemStorage.name: '';
 			}							
 			else {
 				valA = a[this.currentPriceListSort];
@@ -350,7 +358,11 @@ export default {
 			else if (groupSort === 'metal') {
 				valA = a.item.itemType.material.name;
 				valB = b.item.itemType.material.name;
-			}							
+			}
+			else if (groupSort === 'itemStorage') {
+				valA = a.item.itemStorage ? a.item.itemStorage.name: ''; 
+				valB = b.item.itemStorage ? b.item.itemStorage.name: '';
+			}								
 			else {
 				valA = a[groupSort];
 				valB = b[groupSort];
@@ -378,12 +390,11 @@ export default {
 		
 	},		
     getCurrentFilter(){
-      return localStorage.getItem("PriceMaterialFilter")?localStorage.getItem("PriceMaterialFilter"):"";
+      return localStorage.getItem("PriceListFilter")?localStorage.getItem("PriceListFilter"):"";
     },
 
     setCurrentFilter(event){
-
-      localStorage.setItem("PriceMaterialFilter",event.target.value);
+      localStorage.setItem("PriceListFilter",event.target.value);
       this.currentFilter=event.target.value;
       this.fetchData();
     },
@@ -414,12 +425,23 @@ export default {
 
       try{
         errorMessage="Error fetching metals. Please try again later.";
+		
         const response = await axios.get(`/materials`);
-        this.metals = response.data.map(metal => ({
+        let metals = response.data.map(metal => ({
           id: metal.id,
-          name: metal.name
+          name:  metal.name,
+		  type: 'Metal',
+		  typeName: 'Metal',
         }));
-
+		const itemStoragesresponse = await axios.get(`/itemStorages`);
+		let itemStorages = itemStoragesresponse.data.map(storage => ({
+		          id: storage.id,
+		          name:  storage.name,
+				  type: 'ItemStorage',
+				  typeName: 'Item Storage'
+			  }));
+		this.filters =[...metals,...itemStorages];
+		
       } catch (error) {
         console.error('Error fetching data:', error);
         this.setErrorMessage(error,errorMessage);
@@ -430,12 +452,22 @@ export default {
       try{
           if(this.currentFilter != "" && this.currentFilter != null){
 
-            errorMessage="No price for selected metal available.";
+            errorMessage="No price for selected filter available.";
             console.log('currentFilter:',this.currentFilter);
-            const response = await axios.get(`/prices/material/`+this.currentFilter);
+			let filterArray = this.currentFilter.split(":");
+			if(filterArray.length == 2){
+			let path =`/prices/itemStorage/`;
+			if(filterArray[0] === 'Metal'){
+				path =`/prices/material/`;
+			}
+            const response = await axios.get(path+filterArray[1]);
 
             this.priceList = response.data;
             console.log('priceList:',this.priceList);
+			}
+			else{
+				throw new Error("Invalid pricelist filter.");
+			}
           }
           else{
 
