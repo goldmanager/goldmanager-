@@ -12,7 +12,7 @@
    See the License for the specific language governing permissions and
  * 
  */
-package com.my.goldmanager.rest;
+package com.my.goldmanager.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

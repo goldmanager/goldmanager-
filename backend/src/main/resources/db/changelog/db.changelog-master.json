@@ -289,6 +289,75 @@
                }
             ]
          }
+      },
+       {
+         "changeSet": {
+            "id": "v4",
+            "author": "fg",
+            "changes": [
+               {
+                  "createTable": {
+                     "columns": [
+                        {
+                           "column": {
+                              "name": "id",
+                              "type": "varchar(255)",
+                              "constraints": {
+                                 "primaryKey": true
+                              }
+                           }
+                        },
+                        {
+                           "column": {
+                              "name": "name",
+                              "type": "varchar(255)",
+                              "constraints": {
+                                 "nullable": false,
+                                 "unique": true
+                              }
+                           }
+                        },
+                        {
+                           "column": {
+                              "name": "description",
+                              "type": "text",
+                              "constraints": {
+                                 "nullable": true
+                              }
+                           }
+                        }
+                     ],
+                     "remarks": "Item storage location",
+                     "tableName": "ITEM_STORAGE"
+                  }
+               },
+             
+               
+               "addColumn": {
+                  "columns": [
+                     {
+                        "column": {
+                           "name": "itemstorage",
+                           "type": "varchar(255)",                         
+                           "constraints": {
+                              "nullable": true
+                            
+                           }
+                        }
+                     }
+                  ],
+                  "tableName": "ITEM"
+               },
+               "addForeignKeyConstraint": {
+                  "baseTableName": "ITEM",
+                  "baseColumnNames": "itemstorage",
+                  "referencedTableName": "ITEM_STORAGE",
+                  "referencedColumnNames": "id",
+                  "onDelete": "RESTRICT",
+                  "constraintName": "fk_item_itemstorage"
+               },
+            ]
+         }
       }
    ]
 }

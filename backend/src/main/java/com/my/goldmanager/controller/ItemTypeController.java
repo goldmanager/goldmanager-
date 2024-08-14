@@ -12,13 +12,11 @@
    See the License for the specific language governing permissions and
  * 
  */
-package com.my.goldmanager.rest;
+package com.my.goldmanager.controller;
 
 import java.util.List;
 import java.util.Optional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,65 +31,91 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
 
-import com.my.goldmanager.entity.Material;
+import com.my.goldmanager.entity.ItemType;
 import com.my.goldmanager.rest.response.ErrorResponse;
-import com.my.goldmanager.service.MaterialService;
+import com.my.goldmanager.service.ItemTypeService;
 import com.my.goldmanager.service.exception.BadRequestException;
-import com.my.goldmanager.service.exception.ValidationException;
 
-@RestController
-@RequestMapping("/api/materials")
-public class MaterialController {
-	private static final Logger logger = LoggerFactory.getLogger(MaterialController.class);
+@RestController()
+@RequestMapping("/api/itemTypes")
+public class ItemTypeController {
+
 	@Autowired
-	private MaterialService materialService;
+	private ItemTypeService itemTypeService;
 
+	/**
+	 * Create {@link ItemType}
+	 * 
+	 * @param itemType
+	 * @return
+	 */
 	@PostMapping
-	public ResponseEntity<Material> create(@RequestBody Material material) {
+	public ResponseEntity<ItemType> create(@RequestBody ItemType itemType) {
 		try {
-			Material savedmaterial = materialService.store(material);
-			return ResponseEntity.status(HttpStatus.CREATED).body(savedmaterial);
-		} catch (ValidationException ve) {
-			throw new BadRequestException(ve.getMessage(), ve);
+			ItemType savedItemType = itemTypeService.create(itemType);
+			return ResponseEntity.status(HttpStatus.CREATED).body(savedItemType);
+		} catch (Exception e) {
+			throw new BadRequestException(e.getMessage(), e);
 		}
 	}
 
-	@GetMapping
-	public List<Material> list() {
-		return materialService.list();
-	}
-
-	@GetMapping(path = "/{id}")
-	public ResponseEntity<Material> getbyId(@PathVariable(name = "id") String id) {
-		Optional<Material> result = materialService.getById(id);
-		if (result.isPresent()) {
-			return ResponseEntity.ok(result.get());
-		}
-		return ResponseEntity.notFound().build();
-
-	}
-
+	/**
+	 * Updates provided {@link ItemType}
+	 * 
+	 * @param id
+	 * @param itemType
+	 * @return
+	 */
 	@PutMapping(path = "/{id}")
-	public ResponseEntity<Material> update(@PathVariable(name = "id") String id, @RequestBody Material material) {
+	public ResponseEntity<ItemType> update(@PathVariable(name = "id") String id, @RequestBody ItemType itemType) {
 		try {
-			Optional<Material> result = materialService.update(id, material);
+			Optional<ItemType> result = itemTypeService.update(id, itemType);
 			if (result.isPresent()) {
 				return ResponseEntity.ok(result.get());
 			}
 			return ResponseEntity.notFound().build();
-		} catch (ValidationException ve) {
-			logger.error("Validation error during updating Material", ve);
-			throw new BadRequestException(ve.getMessage(), ve);
+		} catch (Exception e) {
+			throw new BadRequestException(e.getMessage(), e);
 		}
 	}
 
+	/**
+	 * Returns ItemType by Id
+	 * 
+	 * @param id
+	 * @return
+	 */
+	@GetMapping(path = "/{id}")
+	public ResponseEntity<ItemType> get(@PathVariable(name = "id") String id) {
+		Optional<ItemType> result = itemTypeService.getById(id);
+		if (result.isPresent()) {
+			return ResponseEntity.ok(result.get());
+		}
+		return ResponseEntity.notFound().build();
+	}
+
+	/**
+	 * Delete ItemType by id
+	 * 
+	 * @param id
+	 * @return
+	 */
 	@DeleteMapping(path = "/{id}")
 	public ResponseEntity<Void> delete(@PathVariable(name = "id") String id) {
-		if (materialService.deleteById(id)) {
+		if (itemTypeService.delete(id)) {
 			return ResponseEntity.noContent().build();
-		} else {
-			return ResponseEntity.notFound().build();
 		}
+		return ResponseEntity.notFound().build();
+	}
+
+	/**
+	 * List all Item types
+	 * 
+	 * @return
+	 */
+	@GetMapping
+	public List<ItemType> list() {
+		return itemTypeService.list();
 	}
 
 	@ExceptionHandler(BadRequestException.class)

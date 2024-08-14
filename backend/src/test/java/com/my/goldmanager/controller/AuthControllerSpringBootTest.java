@@ -1,4 +1,4 @@
-package com.my.goldmanager.rest;
+package com.my.goldmanager.controller;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
