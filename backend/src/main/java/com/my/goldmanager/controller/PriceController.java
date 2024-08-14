@@ -59,6 +59,14 @@ public class PriceController {
 		}
 		return ResponseEntity.notFound().build();
 	}
+	@GetMapping(path = "/itemStorage/{id}")
+	public ResponseEntity<PriceList> listPricesForItemStorage(@PathVariable("id") String itemStorageId) {
+		Optional<PriceList> result = priceService.listForStorage(itemStorageId);
+		if (result.isPresent()) {
+			return ResponseEntity.ok(result.get());
+		}
+		return ResponseEntity.notFound().build();
+	}
 
 	@GetMapping(path = "/groupBy/material")
 	public ResponseEntity<PriceGroupList> groupByMaterial() {
