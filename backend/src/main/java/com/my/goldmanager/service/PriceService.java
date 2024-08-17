@@ -75,6 +75,15 @@ public class PriceService {
 		}
 		return Optional.empty();
 	}
+	public Optional<PriceList> listForStorage(String storageId) {
+
+		List<Item> items = itemRepository.findByItemStorageId(storageId);
+
+		if (items != null && !items.isEmpty()) {
+			return Optional.of(createPriceList(items));
+		}
+		return Optional.empty();
+	}
 
 	private void addToPriceGroupsbyMaterial(Item item, Map<String, PriceGroup> priceGroupMap) {
 		PriceGroup priceGroup = priceGroupMap.get(item.getItemType().getMaterial().getName());

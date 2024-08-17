@@ -27,4 +27,6 @@ public interface ItemRepository extends JpaRepository<Item, String> {
 	@Query(value = "Select item FROM Item item JOIN item.itemType it JOIN it.material m WHERE m.id = :materialId")
 	List<Item> findByMaterialId(@Param("materialId") String materialId);
 
+	@Query(value = "Select item FROM Item item JOIN item.itemStorage storage WHERE storage.id = :storageId")
+	List<Item> findByItemStorageId(@Param("storageId") String storageId);
 }

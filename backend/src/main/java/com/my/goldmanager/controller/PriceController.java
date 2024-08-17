@@ -12,7 +12,7 @@
    See the License for the specific language governing permissions and
  * 
  */
-package com.my.goldmanager.rest;
+package com.my.goldmanager.controller;
 
 import java.util.Optional;
 
@@ -54,6 +54,14 @@ public class PriceController {
 	@GetMapping(path = "/material/{id}")
 	public ResponseEntity<PriceList> listPricesForMaterial(@PathVariable("id") String materialId) {
 		Optional<PriceList> result = priceService.listForMaterial(materialId);
+		if (result.isPresent()) {
+			return ResponseEntity.ok(result.get());
+		}
+		return ResponseEntity.notFound().build();
+	}
+	@GetMapping(path = "/itemStorage/{id}")
+	public ResponseEntity<PriceList> listPricesForItemStorage(@PathVariable("id") String itemStorageId) {
+		Optional<PriceList> result = priceService.listForStorage(itemStorageId);
 		if (result.isPresent()) {
 			return ResponseEntity.ok(result.get());
 		}

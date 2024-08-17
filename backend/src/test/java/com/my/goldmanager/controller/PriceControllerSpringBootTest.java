@@ -1,4 +1,4 @@
-package com.my.goldmanager.rest;
+package com.my.goldmanager.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,10 +24,12 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.my.goldmanager.entity.Item;
+import com.my.goldmanager.entity.ItemStorage;
 import com.my.goldmanager.entity.ItemType;
 import com.my.goldmanager.entity.Material;
 import com.my.goldmanager.entity.Unit;
 import com.my.goldmanager.repository.ItemRepository;
+import com.my.goldmanager.repository.ItemStorageRepository;
 import com.my.goldmanager.repository.ItemTypeRepository;
 import com.my.goldmanager.repository.MaterialRepository;
 import com.my.goldmanager.repository.UnitRepository;
@@ -47,6 +50,9 @@ public class PriceControllerSpringBootTest {
 
 	@Autowired
 	private AuthenticationService authenticationService;
+
+	@Autowired
+	private ItemStorageRepository itemStorageRepository;
 
 	@Autowired
 	private ItemTypeRepository itemTypeRepository;
@@ -74,11 +80,23 @@ public class PriceControllerSpringBootTest {
 	List<Item> items;
 
 	private static PriceGroup getPriceGroup(String groupName, PriceGroupList priceGroupList) {
-		return priceGroupList.getPriceGroups().stream().filter(pg->groupName.equals(pg.getGroupName())).distinct().findFirst().orElseThrow();
+		return priceGroupList.getPriceGroups().stream().filter(pg -> groupName.equals(pg.getGroupName())).distinct()
+				.findFirst().orElseThrow();
 	}
+
 	@BeforeEach
 	public void setUp() {
 		TestHTTPClient.setup(userService, authenticationService);
+
+		ItemStorage storage1 = new ItemStorage();
+		storage1.setName("storage1");
+		storage1.setDescription("description1");
+		storage1 = itemStorageRepository.save(storage1);
+
+		ItemStorage storage2 = new ItemStorage();
+		storage2.setName("storage2");
+		storage2.setDescription("description2");
+		storage2 = itemStorageRepository.save(storage2);
 
 		Material m = new Material();
 		m.setName("Gold");
@@ -109,7 +127,7 @@ public class PriceControllerSpringBootTest {
 		fineGold999 = itemTypeRepository.save(fineGold999);
 
 		ItemType gold585 = new ItemType();
-		
+
 		gold585.setMaterial(gold);
 		gold585.setModifier(0.585f / 0.999f);
 		gold585.setName("Bar Gold 0.585");
@@ -130,7 +148,8 @@ public class PriceControllerSpringBootTest {
 		item.setAmount(1);
 		item.setItemCount(2);
 		item.setUnit(oz);
-
+		item.setItemStorage(storage1);
+		
 		item = itemRepository.save(item);
 		items.add(item);
 
@@ -140,6 +159,7 @@ public class PriceControllerSpringBootTest {
 		item.setAmount(0.5f);
 		item.setItemCount(3);
 		item.setUnit(oz);
+		item.setItemStorage(storage1);
 		item = itemRepository.save(item);
 		items.add(item);
 
@@ -148,7 +168,9 @@ public class PriceControllerSpringBootTest {
 		item.setItemType(fineGold999);
 		item.setAmount(20);
 		item.setUnit(gramm);
+		item.setItemStorage(storage2);
 		item = itemRepository.save(item);
+		
 		items.add(item);
 
 		item = new Item();
@@ -156,6 +178,7 @@ public class PriceControllerSpringBootTest {
 		item.setItemType(gold585);
 		item.setAmount(5);
 		item.setUnit(gramm);
+		item.setItemStorage(storage2);
 		item = itemRepository.save(item);
 		items.add(item);
 
@@ -164,6 +187,7 @@ public class PriceControllerSpringBootTest {
 		item.setItemType(fineSilver999);
 		item.setAmount(500);
 		item.setUnit(gramm);
+		item.setItemStorage(storage2);
 		item = itemRepository.save(item);
 		items.add(item);
 
@@ -188,6 +212,9 @@ public class PriceControllerSpringBootTest {
 			assertEquals(getTotalItemPrice(expected), price.getPriceTotal());
 			assertEquals(expected.getName(), price.getItem().getName());
 			assertEquals(expected.getId(), price.getItem().getId());
+			assertEquals(expected.getItemStorage().getId(), price.getItem().getItemStorage().getId());
+			assertEquals(expected.getItemStorage().getName(), price.getItem().getItemStorage().getName());
+			assertEquals(expected.getItemStorage().getDescription(), price.getItem().getItemStorage().getDescription());
 		}
 
 	}
@@ -210,8 +237,7 @@ public class PriceControllerSpringBootTest {
 			PriceGroup actualPriceGroup = getPriceGroup(itemtype.getName(), result);
 			assertEquals(expectedItems.size(), actualPriceGroup.getPrices().size());
 			assertEquals(getAmmount(expectedItems), actualPriceGroup.getAmount());
-			assertEquals(getPriceSummary(expectedItems),
-					actualPriceGroup.getTotalPrice());
+			assertEquals(getPriceSummary(expectedItems), actualPriceGroup.getTotalPrice());
 
 			for (int current = 0; current < expectedItems.size(); current++) {
 				Item expected = expectedItems.get(current);
@@ -219,6 +245,9 @@ public class PriceControllerSpringBootTest {
 				assertEquals(getSingleItemPrice(expected), actual.getPrice());
 				assertEquals(getTotalItemPrice(expected), actual.getPriceTotal());
 				assertEquals(expected.getName(), actual.getItem().getName());
+				assertEquals(expected.getItemStorage().getId(), actual.getItem().getItemStorage().getId());
+				assertEquals(expected.getItemStorage().getName(), actual.getItem().getItemStorage().getName());
+				assertEquals(expected.getItemStorage().getDescription(), actual.getItem().getItemStorage().getDescription());
 			}
 		}
 
@@ -239,7 +268,7 @@ public class PriceControllerSpringBootTest {
 				.filter(item -> item.getItemType().getMaterial().getId().equals(gold.getId())).toList();
 		List<Item> silverItems = items.stream()
 				.filter(item -> item.getItemType().getMaterial().getId().equals(silver.getId())).toList();
-		
+
 		PriceGroup goldPriceGroup = getPriceGroup(gold.getName(), result);
 		assertEquals(goldItems.size(), goldPriceGroup.getPrices().size());
 		assertEquals(getAmmount(goldItems), goldPriceGroup.getAmount());
@@ -251,6 +280,9 @@ public class PriceControllerSpringBootTest {
 			assertEquals(getSingleItemPrice(expected), actual.getPrice());
 			assertEquals(getTotalItemPrice(expected), actual.getPriceTotal());
 			assertEquals(expected.getName(), actual.getItem().getName());
+			assertEquals(expected.getItemStorage().getId(), actual.getItem().getItemStorage().getId());
+			assertEquals(expected.getItemStorage().getName(), actual.getItem().getItemStorage().getName());
+			assertEquals(expected.getItemStorage().getDescription(), actual.getItem().getItemStorage().getDescription());
 		}
 		PriceGroup silverPriceGroup = getPriceGroup(silver.getName(), result);
 		assertEquals(silverItems.size(), silverPriceGroup.getPrices().size());
@@ -262,6 +294,9 @@ public class PriceControllerSpringBootTest {
 			Price actual = silverPriceGroup.getPrices().get(current);
 			assertEquals(getSingleItemPrice(expected), actual.getPrice());
 			assertEquals(expected.getName(), actual.getItem().getName());
+			assertEquals(expected.getItemStorage().getId(), actual.getItem().getItemStorage().getId());
+			assertEquals(expected.getItemStorage().getName(), actual.getItem().getItemStorage().getName());
+			assertEquals(expected.getItemStorage().getDescription(), actual.getItem().getItemStorage().getDescription());
 		}
 
 	}
@@ -269,9 +304,9 @@ public class PriceControllerSpringBootTest {
 	@Test
 	void testlistPricesForMaterialGold() throws UnsupportedEncodingException, Exception {
 
-		String body = mockMvc.perform(TestHTTPClient.doGet("/prices/material/" + gold.getId())).andExpect(status().isOk())
-				.andExpect(content().contentType(MediaType.APPLICATION_JSON)).andReturn().getResponse()
-				.getContentAsString();
+		String body = mockMvc.perform(TestHTTPClient.doGet("/prices/material/" + gold.getId()))
+				.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON)).andReturn()
+				.getResponse().getContentAsString();
 
 		PriceList result = objectMapper.readValue(body, PriceList.class);
 		assertNotNull(result);
@@ -287,6 +322,9 @@ public class PriceControllerSpringBootTest {
 			assertEquals(getSingleItemPrice(expected), price.getPrice());
 			assertEquals(expected.getName(), price.getItem().getName());
 			assertEquals(expected.getId(), price.getItem().getId());
+			assertEquals(expected.getItemStorage().getId(), price.getItem().getItemStorage().getId());
+			assertEquals(expected.getItemStorage().getName(), price.getItem().getItemStorage().getName());
+			assertEquals(expected.getItemStorage().getDescription(), price.getItem().getItemStorage().getDescription());
 		}
 
 	}
@@ -294,9 +332,9 @@ public class PriceControllerSpringBootTest {
 	@Test
 	void testlistPricesForMaterialSilver() throws UnsupportedEncodingException, Exception {
 
-		String body = mockMvc.perform(TestHTTPClient.doGet("/prices/material/" + silver.getId())).andExpect(status().isOk())
-				.andExpect(content().contentType(MediaType.APPLICATION_JSON)).andReturn().getResponse()
-				.getContentAsString();
+		String body = mockMvc.perform(TestHTTPClient.doGet("/prices/material/" + silver.getId()))
+				.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON)).andReturn()
+				.getResponse().getContentAsString();
 
 		PriceList result = objectMapper.readValue(body, PriceList.class);
 		assertNotNull(result);
@@ -313,6 +351,9 @@ public class PriceControllerSpringBootTest {
 			assertEquals(getTotalItemPrice(expected), price.getPriceTotal());
 			assertEquals(expected.getName(), price.getItem().getName());
 			assertEquals(expected.getId(), price.getItem().getId());
+			assertEquals(expected.getItemStorage().getId(), price.getItem().getItemStorage().getId());
+			assertEquals(expected.getItemStorage().getName(), price.getItem().getItemStorage().getName());
+			assertEquals(expected.getItemStorage().getDescription(), price.getItem().getItemStorage().getDescription());
 		}
 
 	}
@@ -324,13 +365,51 @@ public class PriceControllerSpringBootTest {
 	}
 
 	@Test
+	void testlistPricesForItemStorage() throws UnsupportedEncodingException, Exception {
+
+		List<ItemStorage> itemStorages = itemStorageRepository.findAll();
+		
+		for(ItemStorage storage: itemStorages) {
+			String body = mockMvc.perform(TestHTTPClient.doGet("/prices/itemStorage/" + storage.getId()))
+					.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON)).andReturn()
+					.getResponse().getContentAsString();
+
+			PriceList result = objectMapper.readValue(body, PriceList.class);
+			assertNotNull(result);
+			List<Item> expectedItems= items.stream().filter(items-> items.getItemStorage().getId().equals(storage.getId())).collect(Collectors.toList());
+			assertEquals(expectedItems.size(), result.getPrices().size());
+			assertEquals(getPriceSummary(expectedItems), result.getTotalPrice());
+			for(int i=0; i < expectedItems.size(); i++) {
+				Item expected = expectedItems.get(i);
+				Price price = result.getPrices().get(i);
+				assertEquals(getTotalItemPrice(expected), price.getPriceTotal());
+				assertEquals(getSingleItemPrice(expected), price.getPrice());
+				assertEquals(getTotalItemPrice(expected), price.getPriceTotal());
+				assertEquals(expected.getName(), price.getItem().getName());
+				assertEquals(expected.getId(), price.getItem().getId());
+				assertEquals(expected.getItemStorage().getId(), price.getItem().getItemStorage().getId());
+				assertEquals(expected.getItemStorage().getName(), price.getItem().getItemStorage().getName());
+				assertEquals(expected.getItemStorage().getDescription(), price.getItem().getItemStorage().getDescription());
+			}
+		}
+	
+		
+
+	}
+	@Test
+	void testlistPricesForItemStorageUnknown() throws UnsupportedEncodingException, Exception {
+
+		mockMvc.perform(TestHTTPClient.doGet("/prices/itemStorage/unknown")).andExpect(status().isNotFound());
+	}
+	
+	@Test
 	void testGetByItem() throws UnsupportedEncodingException, Exception {
 
 		for (int current = 0; current < items.size(); current++) {
 			Item expected = items.get(current);
-			String body = mockMvc.perform(TestHTTPClient.doGet("/prices/item/" + expected.getId())).andExpect(status().isOk())
-					.andExpect(content().contentType(MediaType.APPLICATION_JSON)).andReturn().getResponse()
-					.getContentAsString();
+			String body = mockMvc.perform(TestHTTPClient.doGet("/prices/item/" + expected.getId()))
+					.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON)).andReturn()
+					.getResponse().getContentAsString();
 
 			Price result = objectMapper.readValue(body, Price.class);
 			assertNotNull(result);
@@ -347,7 +426,7 @@ public class PriceControllerSpringBootTest {
 	private float getAmmount(List<Item> items) {
 		float result = 0;
 		for (Item item : items) {
-			result +=  Float.valueOf(item.getItemCount())* item.getAmount() * item.getUnit().getFactor();
+			result += Float.valueOf(item.getItemCount()) * item.getAmount() * item.getUnit().getFactor();
 		}
 		BigDecimal bd = new BigDecimal(result).setScale(2, RoundingMode.HALF_DOWN);
 		return bd.floatValue();
@@ -362,26 +441,27 @@ public class PriceControllerSpringBootTest {
 	}
 
 	private float getSingleItemPrice(Item item) {
-		BigDecimal price = new BigDecimal( item.getAmount() * item.getUnit().getFactor()
+		BigDecimal price = new BigDecimal(item.getAmount() * item.getUnit().getFactor()
 				* item.getItemType().getModifier() * item.getItemType().getMaterial().getPrice())
 				.setScale(2, RoundingMode.HALF_DOWN);
 		return price.floatValue();
 	}
 
 	private float getTotalItemPrice(Item item) {
-		BigDecimal price = new BigDecimal( Float.valueOf(item.getItemCount())* item.getAmount() * item.getUnit().getFactor()
-				* item.getItemType().getModifier() * item.getItemType().getMaterial().getPrice())
+		BigDecimal price = new BigDecimal(
+				Float.valueOf(item.getItemCount()) * item.getAmount() * item.getUnit().getFactor()
+						* item.getItemType().getModifier() * item.getItemType().getMaterial().getPrice())
 				.setScale(2, RoundingMode.HALF_DOWN);
 		return price.floatValue();
 	}
 
-	
 	@AfterEach
 	public void cleanUp() {
 		itemRepository.deleteAll();
 		itemTypeRepository.deleteAll();
 		materialRepository.deleteAll();
 		unitRepository.deleteAll();
+		itemStorageRepository.deleteAll();
 		gold = null;
 		silver = null;
 		items.clear();

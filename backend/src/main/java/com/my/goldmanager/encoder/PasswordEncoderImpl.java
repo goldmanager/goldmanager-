@@ -14,7 +14,6 @@
  */
 package com.my.goldmanager.encoder;
 
-import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -22,11 +21,8 @@ public class PasswordEncoderImpl implements PasswordEncoder {
 	private final Argon2PasswordEncoder innerEncoder= new Argon2PasswordEncoder(16, 32, 1, 1 << 12, 3);
 	@Override
 	public boolean matches(CharSequence rawPassword, String encodedPassword) {
-		if(innerEncoder.matches(rawPassword, encodedPassword)) {
-			return true;
-		}
-		//Legacy password hashing
-		return DigestUtils.sha3_256Hex(rawPassword.toString()).equals(encodedPassword);
+		return innerEncoder.matches(rawPassword, encodedPassword);
+		
 	}
 
 	@Override

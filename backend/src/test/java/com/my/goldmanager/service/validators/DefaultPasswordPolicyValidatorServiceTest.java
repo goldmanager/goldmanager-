@@ -34,6 +34,12 @@ public class DefaultPasswordPolicyValidatorServiceTest {
 			this.expectSuccess = expectSuccess;
 		}
 
+		@Override
+		public String toString() {
+			return "TestParameter [password=" + password + ", expectSuccess=" + expectSuccess + "]";
+		}
+		
+
 	}
 
 	@ParameterizedTest
@@ -44,17 +50,17 @@ public class DefaultPasswordPolicyValidatorServiceTest {
 		} else {
 			assertThrows(ValidationException.class,
 					() -> new DefaultPasswordPolicyValidatorService().validate(testParameter.password),
-					"Password must have a size between 8 and 100 characters and must contain of numbers, characters and at least one special character (@$!%*?&).");
+					"Password must have a size between 8 and 100 characters and must contain of numbers, characters and at least one special character (e.g. \"@$!%*?&).");
 		}
 	}
 
 	static Stream<TestParameter> generateTestParameter() {
 		return Stream.of(new TestParameter(null, false), new TestParameter("", false), new TestParameter(" ", false), new TestParameter("a 1234567!", false),
 				new TestParameter(
-						"12345678901234567890123456789012345678901234567890123456789012345678!abcdEFGHIJKLMNOPQRST12345678901a",
+						"12345678901234567890123456789012345678901234567890123456789012345678!abcdEFGHIJKLMNOPQRST12345678901%",
 						false),
 				new TestParameter(
 						"12345678901234567890123456789012345678901234567890123456789012345678!abcdEFGHIJKLMNOPQRST12345678901",
-						true),new TestParameter("ABCde12!",true),new TestParameter("ABCde2!",false),new TestParameter("ABCde112",false));
+						true),new TestParameter("ABCde12!",true),new TestParameter("ABCde2!",false),new TestParameter("ABCde112",false),new TestParameter("ghghUgz67\"",true),new TestParameter("ghghUgz67§",true),new TestParameter("ghghUgz67€",true),new TestParameter("ghghUgz67{}",true),new TestParameter("ghghUgz67[]",true),new TestParameter("ghghUgz67äöü",true));
 	}
 }

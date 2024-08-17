@@ -13,6 +13,7 @@
           <th @click="sortBy('amount')">Weight <span v-if="currentSort === 'amount'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span></th>
           <th @click="sortBy('unit')">Unit <span v-if="currentSort === 'unit'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span></th>
           <th @click="sortBy('itemCount')">Number of Items <span v-if="currentSort === 'itemCount'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span></th>
+		  <th @click="sortBy('itemStorage')">Item Storage <span v-if="currentSort === 'itemStorage'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span></th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -32,6 +33,12 @@
             </select>
           </td>
            <td><input v-model.number="newItem.itemCount" type="integer" placeholder="Number of items"></td>
+		   <td>
+			<select id="optionsStorage" v-model="newItem.itemStorage.id">
+				<option key='' value=''>None</option> 
+				<option v-for="storage in itemStorages" :key="storage.value" :value="storage.value">{{ storage.text }}</option>
+			 </select>
+		   </td>
           <td>
             <button class="actionbutton" @click="addItem()">Add New</button>
           </td>
@@ -52,6 +59,12 @@
 		        </select>
 		      </td>
 		       <td><input v-model.number="editedObject.itemCount" type="integer" placeholder="Number of items"></td>
+			   <td>
+				<select id="optionsStorage" v-model="editedObject.itemStorage.id">
+					<option key='' value=''>None</option> 
+					<option v-for="storage in itemStorages" :key="storage.value" :value="storage.value">{{ storage.text }}</option>
+				</select>
+				</td>
 		      <td>
 		       <button class="actionbutton"  @click="updateObject()">Save</button>
 			   <button class="actionbutton"  @click="cancelEdit">Cancel</button>
@@ -68,6 +81,7 @@
            {{ item.unit.name }}          
           </td>
           <td>{{item.itemCount}}</td>
+		  <td>{{ item.itemStorage && item.itemStorage.name ? item.itemStorage.name: '' }}</td>
           <td>
 			<button class="actionbutton" v-if="editedObject == null"  @click="editObject(item)">Edit</button>
 			<button class="actionbutton" v-if="editedObject != null && editedObject.id === item.id"  @click="cancelEdit">Cancel</button>
@@ -102,9 +116,14 @@ export default {
       items: [],
       units: [],
       itemTypes: [],
+	  itemStorages: [],
       newItem: {
         name: '',
         amount: 0,
+		itemStorage:{
+			id: '',
+			name: ''
+		},
         itemType: {
           id: ''
           },
@@ -148,6 +167,10 @@ export default {
 			valA = a.itemType.name;
 			valB = b.itemType.name;
 		 }
+		 if(this.currentSort === 'itemStorage'){
+			valA = a.itemStorage ? a.itemStorage.name: '';
+			valB = b.itemStorage ? b.itemStorage.name: '';
+		  }
 		 else if(this.currentSort === 'unit'){
                 valA = a.unit.name;
                 valB = b.unit.name;
@@ -190,6 +213,13 @@ export default {
 	}
   },
   methods: {
+	getItemStorageName(itemStorageId){
+		let itemtStorage = this.itemStorages.find(itemStorage =>itemStorage.value === itemStorageId);
+		if(itemtStorage){
+			return itemtStorage.text;
+		}
+		return "";
+	},
 	getItemTypeName(itemTypeId){
 				let itemtype = this.itemTypes.find(itemType =>itemType.value === itemTypeId);
 				if(itemtype){
@@ -202,6 +232,13 @@ export default {
 		this.highlightedRow=object.id;
 		this.highlightedType="editmode";
 		this.editedObject =  { ...object };
+		if(!this.editedObject.itemStorage){
+			this.editedObject.itemStorage={
+				id:'',
+				name: ''
+			};
+		}
+		
 	},
 	cancelEdit() {
 		this.errorMessage="";
@@ -251,7 +288,14 @@ export default {
    addItem(){
 	  this.errorMessage="";
 	  this.newItem.itemType["name"]=this.getItemTypeName(this.newItem.itemType.id);
-      axios.post('/items', this.newItem)
+	  if (this.newItem.itemStorage && this.newItem.itemStorage.id != ''){
+		this.newItem.itemStorage["name"]=this.getItemStorageName(this.newItem.itemStorage.id);
+	  }
+	  let toStore ={...this.newItem};
+	  if(toStore.itemStorage.id == ''){
+		toStore.itemStorage=null;
+	  }
+      axios.post('/items', toStore)
         .then(response => {
 			this.items.push(response.data);
 			this.higlightRow(response.data.id,"saved");
@@ -273,7 +317,10 @@ export default {
         unit: {
           name: this.preSelectedUnit
           },
-
+		  itemStorage:{
+			id: '',
+			name:''
+		  }
         };
     },
     async fetchData() {
@@ -287,7 +334,12 @@ export default {
           this.preSelectedUnit = this.units[0].value;
         }
         this.newItem.unit.name=this.preSelectedUnit;
-
+		const itemstorageresponse = await axios.get(`/itemStorages`);
+		      this.itemStorages = itemstorageresponse.data.map(option => ({
+		        value: option.id,
+		        text: option.name
+		      }));
+		      
        const itemtyperesponse = await axios.get(`/itemTypes`);
         this.itemTypes = itemtyperesponse.data.map(option => ({
           value: option.id,
@@ -309,14 +361,18 @@ export default {
     },
    async updateObject() {
 	  let id =  this.editedObject.id;
+	  
 	  this.higlightRow(id,"saved");
-      axios.put(`/items/`+id, this.editedObject)
+	  let objectTostore ={...this.editedObject};
+	  if (objectTostore.itemStorage.id === ''){
+		objectTostore.itemStorage=null;
+	  }
+      axios.put(`/items/`+id, objectTostore)
         .then(response => {
           // Handle success
           console.log("Update erfolgreich:", response);
 		  this.editedObject = null;
           this.fetchData();
-	
 		  
         })
         .catch(error => {
