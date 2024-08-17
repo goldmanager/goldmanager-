@@ -26,9 +26,8 @@ import com.my.goldmanager.service.exception.ValidationException;
 @Profile("default")
 public class DefaultPasswordPolicyValidatorService implements PasswordPolicyValidationService {
 
-	private final static String validationMessage = "Password must have a size between 8 and 100 characters and must contain of numbers, characters and at least one special character (@$!%*?&).";
-	private final Pattern pattern = Pattern
-			.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$");
+	private final static String validationMessage = "Password must have a size between 8 and 100 characters and must contain of numbers, characters and at least one special character (e.g. @$!%*?&).";
+	private final Pattern pattern = Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&äöüÄÖÜß€§\"\\}\\{\\]\\[]).{8,}$");
 
 	@Override
 	public void validate(String password) throws ValidationException {
