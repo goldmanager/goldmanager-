@@ -29,8 +29,8 @@ export default {
         datasets: [
           {
             label: 'Total Price',
-            backgroundColor: '#f87979',
-            borderColor: '#f87979',
+            backgroundColor: '#D4AF37',
+            borderColor: '#D4AF37',
             data: this.modelValue.map(item => item.totalPrice),
           },
         ],
