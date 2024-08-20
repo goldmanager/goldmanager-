@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <line-chart :chart-data="chartData" :options="chartOptions"></line-chart>
+  <div class="chart-container">
+    <line-chart v-if="chartData" :data="chartData" :options="chartOptions"></line-chart>
   </div>
 </template>
 
@@ -16,39 +16,41 @@ export default {
     LineChart: Line,
   },
   props: {
-    prices: {
+    modelValue: {
       type: Array,
       required: true,
     },
   },
+  emits: ['update:modelValue'],
   computed: {
     chartData() {
-      return {
-        labels: this.prices.map(item => item.date),
+     let result = {
+        labels: this.modelValue.map(item => item.date),
         datasets: [
           {
-            label: 'Price',
+            label: 'Total Price',
             backgroundColor: '#f87979',
-            data: this.prices.map(item => item.price),
+            borderColor: '#f87979',
+            data: this.modelValue.map(item => item.totalPrice),
           },
         ],
       };
+	return result;
     },
-    chartOptions() {
-      return {
-        responsive: true,
-        maintainAspectRatio: false,
-      };
+  },
+  methods: {
+    updatePrices(newPrices) {
+      this.$emit('update:modelValue', newPrices);
     },
   },
 };
 </script>
 
 <style scoped>
-/* Optional: Styling */
 .chart-container {
   position: relative;
-  height: 400px;
+  height: 100%;
+  min-width: 90vh;
   width: 100%;
 }
 </style>

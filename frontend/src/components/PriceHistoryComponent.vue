@@ -3,7 +3,7 @@
     <div class="content">
     <div><h1>Price History</h1></div>
     <div v-if="errorMessage" class="error">{{ errorMessage }}</div>
-    <div >
+   
 	
     <table>
       <thead>
@@ -40,8 +40,8 @@
       </tr>
       </tbody>
       </table>
-	  
-   </div>
+	  <price-chart v-model="prices"/>
+   
     </div>
   </div>
 </template>
@@ -49,20 +49,24 @@
 <script>
 /*eslint no-mixed-spaces-and-tabs: ["error", "smart-tabs"]*/
 import axios from '../axios';
+import PriceChart from './PriceChart.vue';
 export default {
   name: 'PricesComponent',
-
+  components: {
+        PriceChart,
+      },
   data() {
     return {
 		errorMessage:null,
 		metals: [],
 		currentMetal:'',
 		priceHistories:[],
-		dateRange: this.getDefaultDateRange(),		
-	  
+		dateRange: this.getDefaultDateRange(),
+
     };
 
   },
+ 
 
   mounted() {
 	this.currentMetal = this.getCurrentMetal();
@@ -70,6 +74,14 @@ export default {
   },
 
 computed:{ 
+	prices(){ 
+		let result = [];
+		
+		
+		this.priceHistories.forEach(priceHistory=>result.push({date: this.formatDate(priceHistory.date), totalPrice:priceHistory.priceList.totalPrice}));
+		
+		return result.reverse();
+	},
 	dateTimeShortcuts(){
 		let currentDate = new Date();
 		let date24HoursAgo = new Date();
@@ -95,6 +107,10 @@ computed:{
 	}
 },  
 methods: {
+	formatDate(date) {
+	    return new Date(date).toLocaleString();
+		
+	 },
 	getDefaultDateRange(){
 		return 	[this.formatDateCustom(new Date(new Date().getFullYear(),0,1)), this.formatDateCustom(new Date())];
 
@@ -156,8 +172,11 @@ methods: {
 			if((!this.currentMetal || this.currentMetal == '') && this.metals.length>0){
 				this.currentMetal=this.metals[0].id;
 			}
+			if(this.metals.length === 0){ 
+				throw new Error("No metal available");
+			}
 			this.fetchPriceHistories();
-		} catch (error) {+
+		} catch (error) {
 			console.error('Error fetching data:', error);
 			this.setErrorMessage(error,errorMessage);
 		}
