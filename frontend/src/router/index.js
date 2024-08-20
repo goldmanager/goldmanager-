@@ -7,6 +7,7 @@ import ItemTypes from '../components/ItemTypes.vue';
 import Items from '../components/ItemsComponent.vue';
 import Users from '../components/UsersComponent.vue';
 import ItemStorages from '../components/ItemStorages.vue';
+import PriceHistory from '../components/PriceHistoryComponent.vue'
 // Erstelle den Router
 const router = createRouter({
   history: createWebHistory(),
@@ -19,6 +20,7 @@ const router = createRouter({
 	{ path: '/itemStorages', component: ItemStorages, meta: { requiresAuth: true } },
     { path: '/items', component: Items, meta: { requiresAuth: true } },
     { path: '/users', component: Users, meta: { requiresAuth: true } },
+	{ path: '/priceHistory', component: PriceHistory, meta:{requiresAuth: true}}
     // Weitere Routen hinzufügen
   ]
 });

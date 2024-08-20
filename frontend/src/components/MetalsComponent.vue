@@ -244,7 +244,7 @@ export default {
       this.errorMessage='';
      },
     formatDate(date) {
-      return new Date(date).toLocaleString(); // Formatiert Datum und Uhrzeit
+      return new Date(date).toLocaleString();
     },
     formatDateCustom(date){
 
