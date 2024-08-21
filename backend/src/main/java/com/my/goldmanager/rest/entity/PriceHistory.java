@@ -29,4 +29,11 @@ public class PriceHistory {
 	@Setter
 	private PriceList priceList;
 
+	@Getter
+	@Setter
+	private float materialPrice;
+	
+	@Getter
+	@Setter
+	private String materialHistoryId;
 }

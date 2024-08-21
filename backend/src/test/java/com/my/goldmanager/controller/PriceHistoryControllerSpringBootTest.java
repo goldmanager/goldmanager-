@@ -235,7 +235,8 @@ public class PriceHistoryControllerSpringBootTest {
 					assertEquals(mh.getEntryDate().toInstant().toEpochMilli(), ph.getDate().toInstant().toEpochMilli());
 
 					float totalPrice = getPriceSummary(items, mh.getPrice());
-
+					assertEquals(mh.getId(),ph.getMaterialHistoryId());
+					assertEquals(mh.getPrice(),ph.getMaterialPrice());
 					assertNotNull(ph.getPriceList());
 					assertEquals(items.size(), ph.getPriceList().getPrices().size());
 					assertEquals(totalPrice, ph.getPriceList().getTotalPrice());
@@ -280,7 +281,8 @@ public class PriceHistoryControllerSpringBootTest {
 					PriceHistory ph = priceHistories.get(current);
 
 					assertEquals(mh.getEntryDate().toInstant().toEpochMilli(), ph.getDate().toInstant().toEpochMilli());
-
+					assertEquals(mh.getId(),ph.getMaterialHistoryId());
+					assertEquals(mh.getPrice(),ph.getMaterialPrice());
 					float totalPrice = getPriceSummary(items, mh.getPrice());
 
 					assertNotNull(ph.getPriceList());
@@ -337,6 +339,8 @@ public class PriceHistoryControllerSpringBootTest {
 					assertNotNull(ph.getPriceList());
 					assertEquals(items.size(), ph.getPriceList().getPrices().size());
 					assertEquals(totalPrice, ph.getPriceList().getTotalPrice());
+					assertEquals(mh.getId(),ph.getMaterialHistoryId());
+					assertEquals(mh.getPrice(),ph.getMaterialPrice());
 					for (int currentPrice = 0; currentPrice < items.size(); currentPrice++) {
 						Price actualPrice = ph.getPriceList().getPrices().get(currentPrice);
 						assertEquals(getSinglePrice(items.get(currentPrice), mh.getPrice()), actualPrice.getPrice());
@@ -373,10 +377,12 @@ public class PriceHistoryControllerSpringBootTest {
 				assertEquals(mh.getEntryDate().toInstant().toEpochMilli(), ph.getDate().toInstant().toEpochMilli());
 
 				float totalPrice = getPriceSummary(items, mh.getPrice());
-
+				
 				assertNotNull(ph.getPriceList());
 				assertEquals(items.size(), ph.getPriceList().getPrices().size());
 				assertEquals(totalPrice, ph.getPriceList().getTotalPrice());
+				assertEquals(mh.getId(),ph.getMaterialHistoryId());
+				assertEquals(mh.getPrice(),ph.getMaterialPrice());
 				for (int currentPrice = 0; currentPrice < items.size(); currentPrice++) {
 					Price actualPrice = ph.getPriceList().getPrices().get(currentPrice);
 					assertEquals(getSinglePrice(items.get(currentPrice), mh.getPrice()), actualPrice.getPrice());

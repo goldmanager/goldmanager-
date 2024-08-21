@@ -58,6 +58,8 @@ public class PriceHistoryService {
 			for (MaterialHistory history : historyList) {
 
 				PriceHistory priceHistory = new PriceHistory();
+				priceHistory.setMaterialPrice(history.getPrice());
+				priceHistory.setMaterialHistoryId(history.getId());
 				priceHistory.setDate(history.getEntryDate());
 				PriceList priceList = new PriceList();
 				priceHistory.setPriceList(priceList);
