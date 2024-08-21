@@ -33,6 +33,12 @@ export default {
             borderColor: '#D4AF37',
             data: this.modelValue.map(item => item.totalPrice),
           },
+          {
+			label: 'Metal Price',
+			backgroundColor: '#9A9A9A',
+			borderColor: '#9A9A9A',
+			data: this.modelValue.map(item => item.metalPrice),
+          },
         ],
       };
 	return result;
@@ -50,7 +56,7 @@ export default {
 .chart-container {
   position: relative;
   height: 100%;
-  min-width: 90vh;
+  min-width: 100vh;
   width: 100%;
 }
 </style>

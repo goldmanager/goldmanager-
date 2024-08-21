@@ -48,7 +48,7 @@ import com.my.goldmanager.service.UserService;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-public class PriceHistoryControllerSpringBootTest {
+class PriceHistoryControllerSpringBootTest {
 
 	private static final SecureRandom rand = new SecureRandom();
 
@@ -83,7 +83,7 @@ public class PriceHistoryControllerSpringBootTest {
 	private ObjectMapper objectMapper;
 
 	@AfterEach
-	public void cleanUp() {
+	void cleanUp() {
 		itemRepository.deleteAll();
 		itemTypeRepository.deleteAll();
 		unitRepository.deleteAll();
@@ -93,7 +93,7 @@ public class PriceHistoryControllerSpringBootTest {
 	}
 
 	@BeforeEach
-	public void setUp() {
+	void setUp() {
 
 		TestHTTPClient.setup(userService, authenticationService);
 
@@ -160,26 +160,81 @@ public class PriceHistoryControllerSpringBootTest {
 			historySize = historySize - 10;
 
 		}
+
 		materialHistoryRepository.flush();
 
 	}
 
 	@Test
-	public void testListAllforMaterialWithStartdate() throws Exception {
+	void testListAllMaterialWithoutItems() throws Exception {
+		Material iridium = new Material();
+		long now = System.currentTimeMillis();
+		iridium.setEntryDate(new Date(now));
+		iridium.setName("Iridium");
+		iridium = materialRepository.save(iridium);
+		iridium.setPrice(1000);
+
+		MaterialHistory mh = new MaterialHistory();
+		mh.setEntryDate(new Date(now));
+		mh.setPrice(1000);
+		mh.setMaterial(iridium);
+
+		materialHistoryRepository.save(mh);
+		mh = new MaterialHistory();
+		mh.setEntryDate(new Date(now - 1000 * 60));
+		mh.setPrice(1001);
+		mh.setMaterial(iridium);
+		materialHistoryRepository.save(mh);
+
+		String body = mockMvc.perform(TestHTTPClient.doGet("/priceHistory/" + iridium.getId()))
+				.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON)).andReturn()
+				.getResponse().getContentAsString();
+
+		PriceHistoryList priceHistoryList = objectMapper.readValue(body, PriceHistoryList.class);
+
+		List<MaterialHistory> expectedMhs = materialHistoryRepository.findByMaterial(iridium.getId());
+
+		assertEquals(expectedMhs.size(), priceHistoryList.getPriceHistories().size());
+
+		List<Item> items = itemRepository.findByMaterialId(iridium.getId());
+		int current = 0;
+		while (current < priceHistoryList.getPriceHistories().size()) {
+
+			mh = expectedMhs.get(current);
+			PriceHistory ph = priceHistoryList.getPriceHistories().get(current);
+
+			assertEquals(mh.getEntryDate().toInstant().toEpochMilli(), ph.getDate().toInstant().toEpochMilli());
+
+			float totalPrice = getPriceSummary(items, mh.getPrice());
+
+			assertNotNull(ph.getPriceList());
+			assertEquals(0, ph.getPriceList().getPrices().size());
+			
+			assertEquals(totalPrice, ph.getPriceList().getTotalPrice());
+			assertEquals(mh.getId(), ph.getMaterialHistoryId());
+			assertEquals(mh.getPrice(), ph.getMaterialPrice());
+			
+			current++;
+		}
+
+	}
+
+	@Test
+	void testListAllforMaterialWithStartdate() throws Exception {
 		List<Material> materials = materialRepository.findAll();
 		testForStartOrEndDate(materials, true);
 
 	}
 
 	@Test
-	public void testListAllforMaterialWithEndDate() throws Exception {
+	void testListAllforMaterialWithEndDate() throws Exception {
 		List<Material> materials = materialRepository.findAll();
 		testForStartOrEndDate(materials, false);
 
 	}
 
 	@Test
-	public void testListAllforMaterialInRange() throws Exception {
+	void testListAllforMaterialInRange() throws Exception {
 		List<Material> materials = materialRepository.findAll();
 		testForStartAndEndDate(materials);
 		testForStartAndEndDateReversed(materials);
@@ -187,7 +242,7 @@ public class PriceHistoryControllerSpringBootTest {
 	}
 
 	@Test
-	public void testInvalidDate() throws Exception {
+	void testInvalidDate() throws Exception {
 		Material material = materialRepository.findAll().getFirst();
 		Date endDate = new Date();
 		Date startDate = new Date(System.currentTimeMillis() + 5000);
@@ -235,15 +290,16 @@ public class PriceHistoryControllerSpringBootTest {
 					assertEquals(mh.getEntryDate().toInstant().toEpochMilli(), ph.getDate().toInstant().toEpochMilli());
 
 					float totalPrice = getPriceSummary(items, mh.getPrice());
-					assertEquals(mh.getId(),ph.getMaterialHistoryId());
-					assertEquals(mh.getPrice(),ph.getMaterialPrice());
+					assertEquals(mh.getId(), ph.getMaterialHistoryId());
+					assertEquals(mh.getPrice(), ph.getMaterialPrice());
 					assertNotNull(ph.getPriceList());
 					assertEquals(items.size(), ph.getPriceList().getPrices().size());
 					assertEquals(totalPrice, ph.getPriceList().getTotalPrice());
 					for (int currentPrice = 0; currentPrice < items.size(); currentPrice++) {
 						Price actualPrice = ph.getPriceList().getPrices().get(currentPrice);
 						assertEquals(getSinglePrice(items.get(currentPrice), mh.getPrice()), actualPrice.getPrice());
-						assertEquals(getTotalPrice(items.get(currentPrice), mh.getPrice()), actualPrice.getPriceTotal());
+						assertEquals(getTotalPrice(items.get(currentPrice), mh.getPrice()),
+								actualPrice.getPriceTotal());
 					}
 					current++;
 				}
@@ -281,8 +337,8 @@ public class PriceHistoryControllerSpringBootTest {
 					PriceHistory ph = priceHistories.get(current);
 
 					assertEquals(mh.getEntryDate().toInstant().toEpochMilli(), ph.getDate().toInstant().toEpochMilli());
-					assertEquals(mh.getId(),ph.getMaterialHistoryId());
-					assertEquals(mh.getPrice(),ph.getMaterialPrice());
+					assertEquals(mh.getId(), ph.getMaterialHistoryId());
+					assertEquals(mh.getPrice(), ph.getMaterialPrice());
 					float totalPrice = getPriceSummary(items, mh.getPrice());
 
 					assertNotNull(ph.getPriceList());
@@ -291,7 +347,8 @@ public class PriceHistoryControllerSpringBootTest {
 					for (int currentPrice = 0; currentPrice < items.size(); currentPrice++) {
 						Price actualPrice = ph.getPriceList().getPrices().get(currentPrice);
 						assertEquals(getSinglePrice(items.get(currentPrice), mh.getPrice()), actualPrice.getPrice());
-						assertEquals(getTotalPrice(items.get(currentPrice), mh.getPrice()), actualPrice.getPriceTotal());
+						assertEquals(getTotalPrice(items.get(currentPrice), mh.getPrice()),
+								actualPrice.getPriceTotal());
 					}
 					current++;
 				}
@@ -339,12 +396,13 @@ public class PriceHistoryControllerSpringBootTest {
 					assertNotNull(ph.getPriceList());
 					assertEquals(items.size(), ph.getPriceList().getPrices().size());
 					assertEquals(totalPrice, ph.getPriceList().getTotalPrice());
-					assertEquals(mh.getId(),ph.getMaterialHistoryId());
-					assertEquals(mh.getPrice(),ph.getMaterialPrice());
+					assertEquals(mh.getId(), ph.getMaterialHistoryId());
+					assertEquals(mh.getPrice(), ph.getMaterialPrice());
 					for (int currentPrice = 0; currentPrice < items.size(); currentPrice++) {
 						Price actualPrice = ph.getPriceList().getPrices().get(currentPrice);
 						assertEquals(getSinglePrice(items.get(currentPrice), mh.getPrice()), actualPrice.getPrice());
-						assertEquals(getTotalPrice(items.get(currentPrice), mh.getPrice()), actualPrice.getPriceTotal());
+						assertEquals(getTotalPrice(items.get(currentPrice), mh.getPrice()),
+								actualPrice.getPriceTotal());
 					}
 					current++;
 				}
@@ -353,7 +411,7 @@ public class PriceHistoryControllerSpringBootTest {
 	}
 
 	@Test
-	public void testListAllforMaterial() throws Exception {
+	void testListAllforMaterial() throws Exception {
 		List<Material> materials = materialRepository.findAll();
 		for (Material material : materials) {
 
@@ -377,12 +435,12 @@ public class PriceHistoryControllerSpringBootTest {
 				assertEquals(mh.getEntryDate().toInstant().toEpochMilli(), ph.getDate().toInstant().toEpochMilli());
 
 				float totalPrice = getPriceSummary(items, mh.getPrice());
-				
+
 				assertNotNull(ph.getPriceList());
 				assertEquals(items.size(), ph.getPriceList().getPrices().size());
 				assertEquals(totalPrice, ph.getPriceList().getTotalPrice());
-				assertEquals(mh.getId(),ph.getMaterialHistoryId());
-				assertEquals(mh.getPrice(),ph.getMaterialPrice());
+				assertEquals(mh.getId(), ph.getMaterialHistoryId());
+				assertEquals(mh.getPrice(), ph.getMaterialPrice());
 				for (int currentPrice = 0; currentPrice < items.size(); currentPrice++) {
 					Price actualPrice = ph.getPriceList().getPrices().get(currentPrice);
 					assertEquals(getSinglePrice(items.get(currentPrice), mh.getPrice()), actualPrice.getPrice());
@@ -395,7 +453,7 @@ public class PriceHistoryControllerSpringBootTest {
 	}
 
 	@Test
-	public void testListAllforMaterialNotExisting() throws Exception {
+	void testListAllforMaterialNotExisting() throws Exception {
 		mockMvc.perform(TestHTTPClient.doGet("/priceHistory/notexist")).andExpect(status().isNotFound());
 
 	}
@@ -411,14 +469,16 @@ public class PriceHistoryControllerSpringBootTest {
 
 	private float getTotalPrice(Item item, float materialPrice) {
 
-		BigDecimal price = new BigDecimal(Float.valueOf(item.getItemCount()*getSinglePrice(item, materialPrice))).setScale(2, RoundingMode.HALF_DOWN);
+		BigDecimal price = new BigDecimal(Float.valueOf(item.getItemCount() * getSinglePrice(item, materialPrice)))
+				.setScale(2, RoundingMode.HALF_DOWN);
 		return price.floatValue();
 
 	}
+
 	private float getSinglePrice(Item item, float materialPrice) {
 
-		BigDecimal price = new BigDecimal( item.getAmount()
-				* item.getUnit().getFactor() * item.getItemType().getModifier() * materialPrice)
+		BigDecimal price = new BigDecimal(
+				item.getAmount() * item.getUnit().getFactor() * item.getItemType().getModifier() * materialPrice)
 				.setScale(2, RoundingMode.HALF_DOWN);
 		return price.floatValue();
 

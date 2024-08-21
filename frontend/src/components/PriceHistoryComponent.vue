@@ -5,12 +5,12 @@
     <div v-if="errorMessage" class="error">{{ errorMessage }}</div>
    
 	
-    <table>
+    <table v-if="metals.length>0"> 
       <thead>
         <tr>
           <th>Select Metal</th>
 		  <th>Date Range</th>
-		  
+		  <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -33,14 +33,19 @@
 					:clearable="false"
 					:unlink-panels="true"
 					:shortcuts="dateTimeShortcuts"
+					:arrow-control="true"
 					
 					/>
 		</td>
-	    
+	    <td>
+			<button v-if="priceHistories.length>0" class="actionbutton"  @click="deleteHistoryInRange()">Delete Selected Price History</button>
+			<button class="actionbutton"  @click="deleteMetalhistory()">Delete complete Metal Price History</button>
+		</td>
       </tr>
       </tbody>
       </table>
-	  <price-chart v-model="prices"/>
+	  <price-chart v-if="priceHistories.length>0" v-model="priceHistories"/>
+	   <div v-else >No Price History available in selected date range.</div>
    
     </div>
   </div>
@@ -74,25 +79,18 @@ export default {
   },
 
 computed:{ 
-	prices(){ 
-		let result = [];
-		
-		
-		this.priceHistories.forEach(priceHistory=>result.push({date: this.formatDate(priceHistory.date), totalPrice:priceHistory.priceList.totalPrice}));
-		
-		return result.reverse();
-	},
+	
 	dateTimeShortcuts(){
 		let currentDate = new Date();
 		let date24HoursAgo = new Date();
 		date24HoursAgo.setHours(date24HoursAgo.getHours()-24);
 		return [
 			{
-				text: 'Current Year',
+				text: 'This Year',
 				value: [new Date(currentDate.getFullYear(),0,1), currentDate],
 			},
 			{
-				text: 'Current Month',
+				text: 'This Month',
 				value: [new Date(currentDate.getFullYear(),currentDate.getMonth(),1), currentDate],
 			},
 			{
@@ -107,6 +105,7 @@ computed:{
 	}
 },  
 methods: {
+	
 	formatDate(date) {
 	    return new Date(date).toLocaleString();
 		
@@ -184,15 +183,51 @@ methods: {
 	async fetchPriceHistories(){
 		this.errorMessage='';
 		var errorMessage="Error fetching price history. Please try again later.";
+		this.priceHistories =[];
 		try{
 			let startDate =this.addOffsetToDateString(this.dateRange[0]);
 			let endDate =this.addOffsetToDateString(this.dateRange[1]);
 			const priceHistoryResponse = await axios.get(`/priceHistory/${this.currentMetal}?startDate=${startDate}&endDate=${endDate}`);
-			this.priceHistories = priceHistoryResponse.data.priceHistories;
+			this.priceHistories= priceHistoryResponse.data.priceHistories.map(priceHistory=>(
+			{date: this.formatDate(priceHistory.date), totalPrice:priceHistory.priceList.totalPrice, metalPrice: priceHistory.materialPrice,materialHistoryId:priceHistory.materialHistoryId}));
+			
 		}
 		catch(error){
 			console.error('Error fetching data:', error);
 			this.setErrorMessage(error,errorMessage);
+		}
+	},
+	async deleteHistoryInRange(){
+			if (window.confirm('Are you sure you want to delete the selected price history?')) {
+				this.errorMessage='';
+				var errorMessage="Error deleting price history. Please try again later.";
+				try{
+					for(const priceHistory of this.priceHistories){
+					 await	axios.delete(`/materialHistory/${priceHistory.materialHistoryId}`);
+					}
+				}
+				catch(error){
+					console.error('Error deleting price history range:', error);
+					this.setErrorMessage(error,errorMessage);
+				}
+				this.priceHistories=[];
+				
+			}
+	},
+			
+	async deleteMetalhistory(){
+		if (window.confirm('Are you sure you want to delete the complete price history of the selected metal?')) {
+			this.errorMessage='';
+			var errorMessage="Error deleting metal price history. Please try again later.";
+			try{
+				 await axios.delete(`/materialHistory/byMaterial/${this.currentMetal}`);
+			}
+			catch(error){
+				console.error('Error deleting metal price history range:', error);
+				this.setErrorMessage(error,errorMessage);
+			}
+			this.priceHistories=[];
+			
 		}
 	},
 	setErrorMessage(error, defaultMessage){
