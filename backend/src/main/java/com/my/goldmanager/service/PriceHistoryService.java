@@ -53,16 +53,19 @@ public class PriceHistoryService {
 		List<Item> items = itemRepository.findByMaterialId(materialId);
 		PriceHistoryList result = new PriceHistoryList();
 		result.setPriceHistories(new LinkedList<>());
-		if (!items.isEmpty()) {
-			List<MaterialHistory> historyList = getMaterialHistory(materialId, startDate, endDate);
-			for (MaterialHistory history : historyList) {
 
-				PriceHistory priceHistory = new PriceHistory();
-				priceHistory.setDate(history.getEntryDate());
-				PriceList priceList = new PriceList();
-				priceHistory.setPriceList(priceList);
-				result.getPriceHistories().add(priceHistory);
-				priceList.setPrices(new LinkedList<>());
+		List<MaterialHistory> historyList = getMaterialHistory(materialId, startDate, endDate);
+		for (MaterialHistory history : historyList) {
+
+			PriceHistory priceHistory = new PriceHistory();
+			priceHistory.setMaterialPrice(history.getPrice());
+			priceHistory.setMaterialHistoryId(history.getId());
+			priceHistory.setDate(history.getEntryDate());
+			PriceList priceList = new PriceList();
+			priceHistory.setPriceList(priceList);
+			result.getPriceHistories().add(priceHistory);
+			priceList.setPrices(new LinkedList<>());
+			if (!items.isEmpty()) {
 				for (Item item : items) {
 					Price price = new Price();
 					price.setItem(item);
@@ -71,7 +74,8 @@ public class PriceHistoryService {
 					priceList.getPrices().add(price);
 					priceList.setTotalPrice(priceList.getTotalPrice() + price.getPriceTotal());
 				}
-				priceList.setTotalPrice(new BigDecimal(priceList.getTotalPrice()).setScale(2, RoundingMode.HALF_DOWN).floatValue());
+				priceList.setTotalPrice(
+						new BigDecimal(priceList.getTotalPrice()).setScale(2, RoundingMode.HALF_DOWN).floatValue());
 			}
 		}
 		return Optional.of(result);
