@@ -17,7 +17,21 @@
 				<tr v-if="!editedObject">
 					<td><input v-model="newMaterial.name" type="text" placeholder="Name"></td>
 					<td><input v-model.number="newMaterial.price" type="number" placeholder="Price"></td>
-					<td><input v-model="newMaterial.entryDate" type="datetime-local"></td>
+					
+					<td>
+						<el-date-picker v-model="newMaterial.entryDate"
+											type="datetime"
+											range-separator="to"
+											start-placeholder="Begin Date"
+											end-placeholder="Ende Date"
+											format="YYYY-MM-DD HH:mm"
+											value-format="YYYY-MM-DDTHH:mm:ss.SSS"
+											:clearable="false"
+											:arrow-control="true"
+											
+											/>
+					</td>
+					
 					<td><button class="actionbutton" @click="addMaterial">Add New</button></td>
 				</tr>
 				<tr v-else>
@@ -171,8 +185,13 @@ export default {
 		},
 		addMaterial() {
 			this.clearErrorMessage();
-			this.newMaterial.entryDate = new Date(this.newMaterial.entryDate);
-			axios.post('/materials', this.newMaterial).then(response => {
+			let materialToAdd={
+				entryDate:new Date(this.newMaterial.entryDate).toJSON(),
+				price: this.newMaterial.price,
+				name: this.newMaterial.name,
+			};
+			
+			axios.post('/materials', materialToAdd).then(response => {
 				this.resetNewMaterial();
 				this.metals.push(response.data); 
 				this.higlightRow(response.data.id,"saved");
@@ -252,24 +271,9 @@ export default {
       var day=date.getDate();
       var hour =date.getHours();
       var minutes =date.getMinutes();
-      var seconds =date.getSeconds();
-      if(month <10){
-        month ="0"+month;
-      }
-      if(day <10){
-        day ="0"+day
-      }
-      if(hour <10){
-        hour="0"+hour;
-      }
-      if(minutes <10){
-        minutes="0"+minutes;
-      }
-      if(seconds <10){
-        seconds="0"+seconds;
-      }
+   
 
-      return `${date.getFullYear()}-${month}-${day}T${hour}:${minutes}:${minutes}`;
+      return `${date.getFullYear()}-${month}-${day}T${hour}:${minutes}:${minutes}:00.000`;
     }
 
   }

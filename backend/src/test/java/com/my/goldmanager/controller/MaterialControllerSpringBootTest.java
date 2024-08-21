@@ -39,7 +39,7 @@ import com.my.goldmanager.service.UserService;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-public class MaterialControllerSpringBootTest {
+class MaterialControllerSpringBootTest {
 	@Autowired
 	private UserService userService;
 
@@ -59,19 +59,19 @@ public class MaterialControllerSpringBootTest {
 	private ObjectMapper objectMapper;
 
 	@BeforeEach
-	public void setUp() {
+	void setUp() {
 		TestHTTPClient.setup(userService, authenticationService);
 	}
 
 	@AfterEach
-	public void cleanUp() {
+	void cleanUp() {
 		materialHistoryRepository.deleteAll();
 		materialRepository.deleteAll();
 		TestHTTPClient.cleanup();
 	}
 
 	@Test
-	public void testList() throws Exception {
+	void testList() throws Exception {
 		Material gold = new Material();
 		gold.setName("gold");
 		gold.setPrice(100.1f);
@@ -104,7 +104,7 @@ public class MaterialControllerSpringBootTest {
 	}
 
 	@Test
-	public void testGetById() throws Exception {
+	void testGetById() throws Exception {
 		Material gold = new Material();
 		gold.setName("gold");
 		gold.setPrice(100.1f);
@@ -119,12 +119,31 @@ public class MaterialControllerSpringBootTest {
 	}
 
 	@Test
-	public void testGetByIdNotFound() throws Exception {
+	void testGetByIdNotFound() throws Exception {
 		mockMvc.perform(TestHTTPClient.doGet("/materials/unknownid")).andExpect(status().isNotFound());
 	}
 
+
 	@Test
-	public void testCreate() throws JsonProcessingException, Exception {
+	void testCreateInvalidDate() throws JsonProcessingException, Exception {
+		Material material = new Material();
+		material.setName("gold");
+		material.setPrice(100.1f);
+		material.setEntryDate(new Date(System.currentTimeMillis()+61*1000));
+		String body = mockMvc
+				.perform(TestHTTPClient.doPost("/materials").contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(material)))
+				.andExpect(status().isBadRequest()).andReturn().getResponse().getContentAsString();
+
+		
+		ErrorResponse error = objectMapper.readValue(body, ErrorResponse.class);
+		assertEquals(400, error.getStatus());
+		assertEquals("EntryDate must not be in future.", error.getMessage());
+	}
+
+
+	@Test
+	void testCreate() throws JsonProcessingException, Exception {
 		Material material = new Material();
 		material.setName("gold");
 		material.setPrice(100.1f);
@@ -195,7 +214,7 @@ public class MaterialControllerSpringBootTest {
 	}
 	
 	@Test
-	public void testDelete() throws JsonProcessingException, Exception {
+	void testDelete() throws JsonProcessingException, Exception {
 		Material material = new Material();
 		material.setName("gold");
 		material.setPrice(100.1f);
@@ -210,7 +229,7 @@ public class MaterialControllerSpringBootTest {
 	}
 
 	@Test
-	public void testDeleteWithistory() throws JsonProcessingException, Exception {
+	void testDeleteWithistory() throws JsonProcessingException, Exception {
 		Material material = new Material();
 		material.setName("gold");
 		material.setPrice(100.1f);
@@ -230,9 +249,33 @@ public class MaterialControllerSpringBootTest {
 		mockMvc.perform(TestHTTPClient.doDelete("/materials/" + material.getId())).andExpect(status().isNotFound());
 
 	}
+	@Test
+	void testUpdateDateInFuture() throws JsonProcessingException, Exception {
+		Material material = new Material();
+		material.setName("gold");
+		material.setPrice(100.1f);
+		Date createddate = new Date(System.currentTimeMillis());
+
+		material.setEntryDate(createddate);
+
+		Material created = materialRepository.save(material);
+		created.setPrice(200);
+		created.setEntryDate(new Date(System.currentTimeMillis() + 61*1000));
+
+		String body = mockMvc
+				.perform(TestHTTPClient.doPut("/materials/" + created.getId()).contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(created)))
+				.andExpect(status().isBadRequest()).andReturn()
+				.getResponse().getContentAsString();
+
+		ErrorResponse error = objectMapper.readValue(body, ErrorResponse.class);
+		assertEquals(400, error.getStatus());
+		assertEquals("EntryDate must not be in future.", error.getMessage());
+
+	}
 
 	@Test
-	public void testUpdate() throws JsonProcessingException, Exception {
+	void testUpdate() throws JsonProcessingException, Exception {
 		Material material = new Material();
 		material.setName("gold");
 		material.setPrice(100.1f);
@@ -263,7 +306,7 @@ public class MaterialControllerSpringBootTest {
 	}
 
 	@Test
-	public void testUpdateWithInvalidDate() throws JsonProcessingException, Exception {
+	void testUpdateWithInvalidDate() throws JsonProcessingException, Exception {
 		Material material = new Material();
 		material.setName("gold");
 		material.setPrice(100.1f);
@@ -292,7 +335,7 @@ public class MaterialControllerSpringBootTest {
 	}
 
 	@Test
-	public void testUpdateWithoutNewDate() throws JsonProcessingException, Exception {
+	void testUpdateWithoutNewDate() throws JsonProcessingException, Exception {
 		Material material = new Material();
 		material.setName("gold");
 		material.setPrice(100.1f);
@@ -324,7 +367,7 @@ public class MaterialControllerSpringBootTest {
 
 	}
 
-	public static String formatDateToUTC(Date date) {
+	static String formatDateToUTC(Date date) {
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS").withZone(ZoneId.of("UTC"));
 		return dtf.format(date.toInstant()) + "+00:00";
 	}
