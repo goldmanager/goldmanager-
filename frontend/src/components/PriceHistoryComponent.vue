@@ -209,10 +209,11 @@ methods: {
 			if (window.confirm('Are you sure you want to delete the selected price history?')) {
 				this.errorMessage='';
 				var errorMessage="Error deleting price history. Please try again later.";
+				let startDate =this.addOffsetToDateString(this.dateRange[0]);
+				let endDate =this.addOffsetToDateString(this.dateRange[1]);
 				try{
-					for(const priceHistory of this.priceHistories){
-					 await	axios.delete(`/materialHistory/${priceHistory.materialHistoryId}`);
-					}
+					
+					 await axios.delete(`/materialHistory/byMaterial/${this.currentMetal}?startDate=${startDate}&endDate=${endDate}`);
 				}
 				catch(error){
 					console.error('Error deleting price history range:', error);
