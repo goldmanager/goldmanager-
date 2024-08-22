@@ -271,9 +271,21 @@ export default {
       var day=date.getDate();
       var hour =date.getHours();
       var minutes =date.getMinutes();
-   
 
-      return `${date.getFullYear()}-${month}-${day}T${hour}:${minutes}:${minutes}:00.000`;
+      if(month <10){
+         month =`0${month}`;
+      }
+      if(day <10){
+         day =`0${day}`;
+      }
+      if(hour < 10){
+        hour =`0${hour}`;
+      }
+      if(minutes < 10){
+         minutes =`0${minutes}`;
+      }
+		
+      return `${date.getFullYear()}-${month}-${day}T${hour}:${minutes}:00.000`;
     }
 
   }

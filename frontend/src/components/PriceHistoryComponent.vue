@@ -83,19 +83,27 @@ computed:{
 	dateTimeShortcuts(){
 		let currentDate = new Date();
 		let date24HoursAgo = new Date();
+		let today= new Date();
+		
+		today.setHours(0);
+		today.setMinutes(0);
+		today.setSeconds(0);
+		today.setMilliseconds(0);
 		date24HoursAgo.setHours(date24HoursAgo.getHours()-24);
+		let currentYear = currentDate.getFullYear();
+		
 		return [
 			{
 				text: 'This Year',
-				value: [new Date(currentDate.getFullYear(),0,1), currentDate],
+				value: [new  Date(currentYear, 0, 1), currentDate],
 			},
 			{
 				text: 'This Month',
-				value: [new Date(currentDate.getFullYear(),currentDate.getMonth(),1), currentDate],
+				value: [new Date(currentYear,currentDate.getMonth(),1), currentDate],
 			},
 			{
 				text: 'Today',
-				value: [new Date(currentDate.getFullYear(),currentDate.getMonth(),currentDate.getDay()), currentDate],
+				value: [today, currentDate],
 			},
 			{
 				text: 'Last 24 hours',
@@ -188,7 +196,7 @@ methods: {
 			let startDate =this.addOffsetToDateString(this.dateRange[0]);
 			let endDate =this.addOffsetToDateString(this.dateRange[1]);
 			const priceHistoryResponse = await axios.get(`/priceHistory/${this.currentMetal}?startDate=${startDate}&endDate=${endDate}`);
-			this.priceHistories= priceHistoryResponse.data.priceHistories.map(priceHistory=>(
+			this.priceHistories= priceHistoryResponse.data.priceHistories.reverse().map(priceHistory=>(
 			{date: this.formatDate(priceHistory.date), totalPrice:priceHistory.priceList.totalPrice, metalPrice: priceHistory.materialPrice,materialHistoryId:priceHistory.materialHistoryId}));
 			
 		}
@@ -201,10 +209,11 @@ methods: {
 			if (window.confirm('Are you sure you want to delete the selected price history?')) {
 				this.errorMessage='';
 				var errorMessage="Error deleting price history. Please try again later.";
+				let startDate =this.addOffsetToDateString(this.dateRange[0]);
+				let endDate =this.addOffsetToDateString(this.dateRange[1]);
 				try{
-					for(const priceHistory of this.priceHistories){
-					 await	axios.delete(`/materialHistory/${priceHistory.materialHistoryId}`);
-					}
+					
+					 await axios.delete(`/materialHistory/byMaterial/${this.currentMetal}?startDate=${startDate}&endDate=${endDate}`);
 				}
 				catch(error){
 					console.error('Error deleting price history range:', error);
