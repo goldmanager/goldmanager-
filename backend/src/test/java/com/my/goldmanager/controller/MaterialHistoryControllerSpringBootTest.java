@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,6 +28,7 @@ import com.my.goldmanager.entity.Material;
 import com.my.goldmanager.entity.MaterialHistory;
 import com.my.goldmanager.repository.MaterialHistoryRepository;
 import com.my.goldmanager.repository.MaterialRepository;
+import com.my.goldmanager.rest.response.ErrorResponse;
 import com.my.goldmanager.service.AuthenticationService;
 import com.my.goldmanager.service.UserService;
 
@@ -34,12 +37,15 @@ import com.my.goldmanager.service.UserService;
 @ActiveProfiles("test")
 public class MaterialHistoryControllerSpringBootTest {
 
+	private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+			.withZone(ZoneId.of("UTC"));
+
 	@Autowired
 	private UserService userService;
 
 	@Autowired
 	private AuthenticationService authenticationService;
-	
+
 	@Autowired
 	private MaterialRepository materialRepository;
 
@@ -62,7 +68,7 @@ public class MaterialHistoryControllerSpringBootTest {
 	@BeforeEach
 	public void setUp() {
 		TestHTTPClient.setup(userService, authenticationService);
-		
+
 		List<Material> materials = new LinkedList<Material>();
 		Material gold = new Material();
 		gold.setName("Gold");
@@ -138,9 +144,9 @@ public class MaterialHistoryControllerSpringBootTest {
 
 		List<MaterialHistory> expectedMhs = materialHistoryRepository.findAll();
 		for (MaterialHistory expected : expectedMhs) {
-			String body = mockMvc.perform(TestHTTPClient.doGet("/materialHistory/" + expected.getId())).andExpect(status().isOk())
-					.andExpect(content().contentType(MediaType.APPLICATION_JSON)).andReturn().getResponse()
-					.getContentAsString();
+			String body = mockMvc.perform(TestHTTPClient.doGet("/materialHistory/" + expected.getId()))
+					.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON)).andReturn()
+					.getResponse().getContentAsString();
 			MaterialHistory result = objectMapper.readValue(body, MaterialHistory.class);
 			assertEquals(expected.getId(), result.getId());
 			assertEquals(expected.getMaterial().getId(), result.getMaterial().getId());
@@ -199,9 +205,98 @@ public class MaterialHistoryControllerSpringBootTest {
 
 		List<MaterialHistory> expectedMhs = materialHistoryRepository.findAll();
 		for (MaterialHistory expected : expectedMhs) {
-			mockMvc.perform(TestHTTPClient.doDelete("/materialHistory/" + expected.getId())).andExpect(status().isNoContent());
+			mockMvc.perform(TestHTTPClient.doDelete("/materialHistory/" + expected.getId()))
+					.andExpect(status().isNoContent());
 			assertFalse(materialHistoryRepository.existsById(expected.getId()));
 		}
+	}
+
+	@Test
+	public void testDeleteByMaterialAndEndDate() throws Exception {
+
+		List<Material> materials = materialRepository.findAll();
+		for (Material material : materials) {
+
+			List<MaterialHistory> histories = materialHistoryRepository.findByMaterial(material.getId());
+			if (histories.size() > 1) {
+				MaterialHistory currentmh = histories.get(histories.size() - 2);
+				mockMvc.perform(TestHTTPClient.doDelete("/materialHistory/byMaterial/" + material.getId() + "?endDate="
+						+ dateFormatter.format(currentmh.getEntryDate().toInstant())))
+						.andExpect(status().isNoContent());
+				assertTrue(materialHistoryRepository.findByMaterialEndAt(material.getId(), currentmh.getEntryDate())
+						.isEmpty());
+				assertEquals(1, materialHistoryRepository.findByMaterial(material.getId()).size());
+			}
+
+		}
+
+	}
+
+	@Test
+	public void testDeleteByMaterialAndStartDate() throws Exception {
+
+		List<Material> materials = materialRepository.findAll();
+		for (Material material : materials) {
+
+			List<MaterialHistory> histories = materialHistoryRepository.findByMaterial(material.getId());
+			if (histories.size() > 1) {
+				MaterialHistory currentmh = histories.get(1);
+				mockMvc.perform(TestHTTPClient.doDelete("/materialHistory/byMaterial/" + material.getId()
+						+ "?startDate=" + dateFormatter.format(currentmh.getEntryDate().toInstant())))
+						.andExpect(status().isNoContent());
+				assertTrue(materialHistoryRepository.findByMaterialStartAt(material.getId(), currentmh.getEntryDate())
+						.isEmpty());
+				assertEquals(1, materialHistoryRepository.findByMaterial(material.getId()).size());
+			}
+
+		}
+
+	}
+
+	@Test
+	public void testDeleteByMaterialAndStartDateEndDate() throws Exception {
+
+		List<Material> materials = materialRepository.findAll();
+		for (Material material : materials) {
+
+			List<MaterialHistory> histories = materialHistoryRepository.findByMaterial(material.getId()).reversed();
+			if (histories.size() > 1) {
+				MaterialHistory startMh = histories.get(1);
+				MaterialHistory endMh = histories.get(histories.size() - 2);
+				mockMvc.perform(TestHTTPClient.doDelete("/materialHistory/byMaterial/" + material.getId()
+						+ "?startDate=" + dateFormatter.format(startMh.getEntryDate().toInstant()) + "&endDate="
+						+ dateFormatter.format(endMh.getEntryDate().toInstant()))).andExpect(status().isNoContent());
+				assertTrue(materialHistoryRepository
+						.findByMaterialInRange(material.getId(), startMh.getEntryDate(), endMh.getEntryDate())
+						.isEmpty());
+				assertEquals(2, materialHistoryRepository.findByMaterial(material.getId()).size());
+			}
+
+		}
+
+	}
+
+	@Test
+	public void testDeleteByMaterialAndInvalidDateRange() throws Exception {
+
+		List<Material> materials = materialRepository.findAll();
+		Material material = materials.getFirst();
+
+		List<MaterialHistory> histories = materialHistoryRepository.findByMaterial(material.getId()).reversed();
+		if (histories.size() > 1) {
+
+			Date endDate = new Date(System.currentTimeMillis());
+			Date startDate = new Date(System.currentTimeMillis() + 5000);
+			String body = mockMvc
+					.perform(TestHTTPClient.doDelete("/materialHistory/byMaterial/" + material.getId() + "?startDate="
+							+ dateFormatter.format(startDate.toInstant()) + "&endDate="
+							+ dateFormatter.format(endDate.toInstant())))
+					.andExpect(status().isBadRequest()).andReturn().getResponse().getContentAsString();
+			ErrorResponse error = objectMapper.readValue(body, ErrorResponse.class);
+			assertEquals(400, error.getStatus());
+			assertEquals("startDate must be before endDate", error.getMessage());
+		}
+
 	}
 
 	@Test
