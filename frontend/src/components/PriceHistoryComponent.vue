@@ -89,13 +89,31 @@ computed:{
 		today.setMinutes(0);
 		today.setSeconds(0);
 		today.setMilliseconds(0);
+		let daysSinceStartOfWeek = (today.getDay()+6)%7;
+		let startOfweek = new Date();
+		startOfweek.setTime(today.getTime());
+		startOfweek.setDate(today.getDate()-daysSinceStartOfWeek);
 		date24HoursAgo.setHours(date24HoursAgo.getHours()-24);
 		let currentYear = currentDate.getFullYear();
+		
+		let oneWeekAgo = new Date();
+		oneWeekAgo.setTime(oneWeekAgo.getTime());
+		oneWeekAgo.setDate(oneWeekAgo.getDate()-7);
+		
+		let oneMonthAgo = new Date();
+		oneMonthAgo.setMonth(oneMonthAgo.getMonth()-1);
+		
+		let oneYearAgo = new Date();
+		oneYearAgo.setFullYear(oneYearAgo.getFullYear()-1);
 		
 		return [
 			{
 				text: 'This Year',
 				value: [new  Date(currentYear, 0, 1), currentDate],
+			},
+			{
+				text: 'This Week',
+				value: [startOfweek, currentDate],
 			},
 			{
 				text: 'This Month',
@@ -109,6 +127,19 @@ computed:{
 				text: 'Last 24 hours',
 				value: [date24HoursAgo, currentDate],
 			},
+			{
+				text: 'Last Week',
+				value: [oneWeekAgo, currentDate],
+			},
+			{
+				text: 'Last Month',
+				value: [oneMonthAgo, currentDate],
+			},
+			{
+				text: 'Last Year',
+				value: [oneYearAgo, currentDate],
+			},
+			
 		];
 	}
 },  
