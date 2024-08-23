@@ -14,6 +14,8 @@
  */
 package com.my.goldmanager.service;
 
+import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import com.my.goldmanager.entity.MaterialHistory;
 import com.my.goldmanager.repository.MaterialHistoryRepository;
+import com.my.goldmanager.service.exception.ValidationException;
 
 @Service
 public class MaterialHistoryService {
@@ -32,8 +35,8 @@ public class MaterialHistoryService {
 	public List<MaterialHistory> getAll() {
 		return repository.findAll();
 	}
-	
-	public Optional<MaterialHistory> getbyId(String id){
+
+	public Optional<MaterialHistory> getbyId(String id) {
 		return repository.findById(id);
 	}
 
@@ -56,4 +59,29 @@ public class MaterialHistoryService {
 		repository.flush();
 	}
 
+	/**
+	 * Deletes MaterialHistory in provided date range.
+	 * 
+	 * @param materialID
+	 * @param startDate
+	 * @ @throws ValidationException
+	 */
+	public void deleteByMaterialAndDateRange(String materialID, Date startDate, Date endDate)
+			throws ValidationException {
+
+
+		if (startDate != null && endDate != null && startDate.after(endDate)) {
+			throw new ValidationException("startDate must be before endDate");
+		}
+		List<MaterialHistory> result = new LinkedList<>();
+		if (startDate == null) {
+			result = repository.findByMaterialEndAt(materialID, endDate);
+		} else if (endDate == null) {
+			result = repository.findByMaterialStartAt(materialID, startDate);
+		} else {
+			result = repository.findByMaterialInRange(materialID, startDate, endDate);
+		}
+		repository.deleteAllInBatch(result);
+		repository.flush();
+	}
 }

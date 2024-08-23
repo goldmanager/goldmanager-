@@ -1,6 +1,7 @@
 <template>
   <nav v-if="isAuthenticated">
     <router-link to="/">Prices</router-link>
+	<router-link to="/priceHistory">Price History</router-link>
     <router-link to="/items">Items</router-link>
     <router-link to="/itemTypes">ItemTypes</router-link>
 	<router-link to="/itemStorages">Item Storages</router-link>

@@ -33,7 +33,7 @@ import com.my.goldmanager.service.exception.ValidationException;
 public class MaterialService {
 	private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")
 			.withZone(ZoneId.of("UTC"));
-
+	private static final long entryDategraceTime=60*1000;
 	@Autowired
 	private MaterialRepository materialRepository;
 	@Autowired
@@ -42,10 +42,14 @@ public class MaterialService {
 	public Material store(Material material) throws ValidationException {
 		material.setId(null);
 		if (material.getName() == null || material.getName().isBlank()) {
-			throw new ValidationException("Material name is mandatory. ");
+			throw new ValidationException("Material name is mandatory.");
 		}
+		
 		if (material.getEntryDate() == null) {
 			material.setEntryDate(new Date());
+		}
+		else if(material.getEntryDate().after(new Date(System.currentTimeMillis()+entryDategraceTime))) {
+			throw new ValidationException("EntryDate must not be in future.");
 		}
 
 		material = materialRepository.save(material);
@@ -64,6 +68,9 @@ public class MaterialService {
 			}
 			if (material.getEntryDate() == null) {
 				material.setEntryDate(new Date());
+			}
+			else if(material.getEntryDate().after(new Date(System.currentTimeMillis()+entryDategraceTime))) {
+				throw new ValidationException("EntryDate must not be in future.");
 			}
 			material = materialRepository.save(material);
 			saveMaterialHistory(material);
