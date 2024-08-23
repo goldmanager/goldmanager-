@@ -124,19 +124,19 @@ computed:{
 				value: [today, currentDate],
 			},
 			{
-				text: 'Last 24 hours',
+				text: 'One Day',
 				value: [date24HoursAgo, currentDate],
 			},
 			{
-				text: 'Last Week',
+				text: 'One Week',
 				value: [oneWeekAgo, currentDate],
 			},
 			{
-				text: 'Last Month',
+				text: 'One Month',
 				value: [oneMonthAgo, currentDate],
 			},
 			{
-				text: 'Last Year',
+				text: 'One Year',
 				value: [oneYearAgo, currentDate],
 			},
 			
