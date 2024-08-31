@@ -1,6 +1,6 @@
 {
   "name": "goldmanager",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -12,7 +12,6 @@
     "chart.js": "^4.4.3",
     "core-js": "^3.8.3",
     "element-plus": "^2.8.0",
-    "jwt-decode": "^4.0.0",
     "vue": "^3.2.13",
     "vue-chartjs": "^5.3.1",
     "vue-router": "^4.4.0",

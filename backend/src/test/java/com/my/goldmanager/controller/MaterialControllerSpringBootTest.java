@@ -163,6 +163,56 @@ class MaterialControllerSpringBootTest {
 	}
 
 	@Test
+	void testCreatePriceSmall() throws JsonProcessingException, Exception {
+		Material material = new Material();
+		material.setName("gold");
+		material.setPrice(0.01f);
+		String body = mockMvc
+				.perform(TestHTTPClient.doPost("/materials").contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(material)))
+				.andExpect(status().isCreated()).andExpect(jsonPath("$.name").value("gold"))
+				.andExpect(jsonPath("$.price").value(0.01f)).andReturn().getResponse().getContentAsString();
+
+		Material created = objectMapper.readValue(body, Material.class);
+		List<MaterialHistory> mh = materialHistoryRepository.findByMaterial(created.getId());
+
+		assertEquals(1, mh.size());
+		MaterialHistory mh1 = mh.get(0);
+		assertEquals(created.getPrice(), mh1.getPrice());
+		assertEquals(created.getEntryDate().toInstant().toEpochMilli(), mh1.getEntryDate().toInstant().toEpochMilli());
+	}
+
+	@Test
+	void testCreatePriceZero() throws JsonProcessingException, Exception {
+		Material material = new Material();
+		material.setName("gold");
+		material.setPrice(0);
+		String body = mockMvc
+				.perform(TestHTTPClient.doPost("/materials").contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(material)))
+				.andExpect(status().isBadRequest()).andReturn().getResponse().getContentAsString();
+
+		ErrorResponse errorResponse = objectMapper.readValue(body, ErrorResponse.class);
+		assertEquals(400, errorResponse.getStatus());
+		assertEquals("Price must be greater than 0.", errorResponse.getMessage());
+	}
+
+	@Test
+	void testCreatePriceNegative() throws JsonProcessingException, Exception {
+		Material material = new Material();
+		material.setName("gold");
+		material.setPrice(-0.01f);
+		String body = mockMvc
+				.perform(TestHTTPClient.doPost("/materials").contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(material)))
+				.andExpect(status().isBadRequest()).andReturn().getResponse().getContentAsString();
+
+		ErrorResponse errorResponse = objectMapper.readValue(body, ErrorResponse.class);
+		assertEquals(400, errorResponse.getStatus());
+		assertEquals("Price must be greater than 0.", errorResponse.getMessage());
+	}
+
+	@Test
 	void testCreateAndUpdateWithMaterialHistory() throws JsonProcessingException, UnsupportedEncodingException, Exception {
 		Material material = new Material();
 		material.setName("gold");
@@ -275,7 +325,49 @@ class MaterialControllerSpringBootTest {
 	}
 
 	@Test
-	void testUpdate() throws JsonProcessingException, Exception {
+	void testUpdatePriceZero() throws JsonProcessingException, Exception {
+		Material material = new Material();
+		material.setName("gold");
+		material.setPrice(100.1f);
+
+		Material created = materialRepository.save(material);
+		created.setPrice(0);
+		created.setEntryDate(null);
+
+		String body = mockMvc
+				.perform(TestHTTPClient.doPut("/materials/" + created.getId()).contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(created)))
+				.andExpect(status().isBadRequest()).andReturn().getResponse().getContentAsString();
+
+		ErrorResponse error = objectMapper.readValue(body, ErrorResponse.class);
+		assertEquals(400, error.getStatus());
+		assertEquals("Price must be greater than 0.", error.getMessage());
+
+	}
+
+	@Test
+	void testUpdatePriceNegative() throws JsonProcessingException, Exception {
+		Material material = new Material();
+		material.setName("gold");
+		material.setPrice(100.1f);
+
+		Material created = materialRepository.save(material);
+		created.setPrice(-0.01f);
+		created.setEntryDate(null);
+
+		String body = mockMvc
+				.perform(TestHTTPClient.doPut("/materials/" + created.getId()).contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(created)))
+				.andExpect(status().isBadRequest()).andReturn().getResponse().getContentAsString();
+
+		ErrorResponse error = objectMapper.readValue(body, ErrorResponse.class);
+		assertEquals(400, error.getStatus());
+		assertEquals("Price must be greater than 0.", error.getMessage());
+
+	}
+
+	@Test
+	void testUpdatePriceSmall() throws JsonProcessingException, Exception {
 		Material material = new Material();
 		material.setName("gold");
 		material.setPrice(100.1f);
@@ -284,14 +376,14 @@ class MaterialControllerSpringBootTest {
 		material.setEntryDate(createddate);
 
 		Material created = materialRepository.save(material);
-		created.setPrice(200);
+		created.setPrice(0.01f);
 		created.setEntryDate(new Date(System.currentTimeMillis() + 1000));
 
 		String body = mockMvc
 				.perform(TestHTTPClient.doPut("/materials/" + created.getId()).contentType(MediaType.APPLICATION_JSON)
 						.content(objectMapper.writeValueAsString(created)))
 				.andExpect(status().isOk()).andExpect(jsonPath("$.name").value("gold"))
-				.andExpect(jsonPath("$.price").value(200))
+				.andExpect(jsonPath("$.price").value(0.01f))
 				.andExpect(jsonPath("$.entryDate").value(formatDateToUTC(created.getEntryDate()))).andReturn()
 				.getResponse().getContentAsString();
 

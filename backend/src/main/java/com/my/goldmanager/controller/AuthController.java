@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.my.goldmanager.rest.request.AuthRequest;
 import com.my.goldmanager.service.AuthenticationService;
+import com.my.goldmanager.service.entity.JWTTokenInfo;
 
 @RestController()
 @RequestMapping("/api/auth")
@@ -36,20 +37,20 @@ public class AuthController {
 	private AuthenticationService authenticationService;
 
 	@PostMapping("/login")
-	public ResponseEntity<String> login(@RequestBody AuthRequest authRequest) {
+	public ResponseEntity<JWTTokenInfo> login(@RequestBody AuthRequest authRequest) {
 		try {
 
 			return ResponseEntity
 					.ok(authenticationService.getJWTToken(authRequest.getUsername(), authRequest.getPassword()));
 		} catch (AuthenticationException e) {
-			return ResponseEntity.status(401).body("Unauthorized");
+			return ResponseEntity.status(401).build();
 		}
 	}
 
 	@GetMapping("/refresh")
-	public ResponseEntity<String> refresh() {
+	public ResponseEntity<JWTTokenInfo> refresh() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		return ResponseEntity.ok(authenticationService.refresJWTToken(authentication.getName()));
+		return ResponseEntity.ok(authenticationService.refrehsJWTToken(authentication.getName()));
 	}
 
 	@GetMapping("/logoutuser")

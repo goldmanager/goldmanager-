@@ -63,7 +63,7 @@ public class TestHTTPClient {
 
 	public static MockHttpServletRequestBuilder authenticate(MockHttpServletRequestBuilder builder) {
 		if (token == null) {
-			token = authenticationService.getJWTToken(username, pass);
+			token = authenticationService.getJWTToken(username, pass).getToken();
 		}
 		return builder.header("Authorization", "Bearer " + token);
 	}
