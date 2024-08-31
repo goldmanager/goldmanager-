@@ -52,6 +52,9 @@ public class MaterialService {
 			throw new ValidationException("EntryDate must not be in future.");
 		}
 
+		if (material.getPrice() <= 0) {
+			throw new ValidationException("Price must be greater than 0.");
+		}
 		material = materialRepository.save(material);
 		saveMaterialHistory(material);
 		return material;
@@ -71,6 +74,9 @@ public class MaterialService {
 			}
 			else if(material.getEntryDate().after(new Date(System.currentTimeMillis()+entryDategraceTime))) {
 				throw new ValidationException("EntryDate must not be in future.");
+			}
+			if (material.getPrice() <= 0) {
+				throw new ValidationException("Price must be greater than 0.");
 			}
 			material = materialRepository.save(material);
 			saveMaterialHistory(material);
