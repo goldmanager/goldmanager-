@@ -1,17 +1,14 @@
 import axios from 'axios';
 import router from '@/router';
 import store from '@/store';
-import { jwtDecode } from 'jwt-decode';
 
 function isTokenExpiringSoon() {
-	const exp = sessionStorage.getItem('jwtExp');
-	if (!exp) return false;
+	const refresh = sessionStorage.getItem('jwtRefresh');
+	if (!refresh) return false;
 
-	const expDate = new Date(exp);
+	const refreshDate = new Date(refresh);
 	const now = new Date();
-	const minutesBeforeExpiry = (expDate - now) / (1000 * 60);
-
-	return minutesBeforeExpiry < 60;
+	return now >= refreshDate;
 }
 
 async function refreshToken(oldToken) {
@@ -22,13 +19,11 @@ async function refreshToken(oldToken) {
 			},
 			withCredentials: true
 		});
-		const newToken = response.data;
-		const decodedToken = jwtDecode(response.data);
-		const newExpDate = new Date(decodedToken.exp * 1000);
-
+		const newToken = response.data.token;
+	
 		if (newToken) {
 			sessionStorage.setItem('jwt-token', newToken);
-			sessionStorage.setItem('jwtExp', newExpDate.toISOString());
+			sessionStorage.setItem('jwtRefresh', response.data.refreshAfter);
 			return newToken;
 		}
 	} catch (error) {
@@ -69,7 +64,7 @@ instance.interceptors.response.use(response => {
 		
 		sessionStorage.removeItem('jwt-token');
 		sessionStorage.removeItem('username');
-		sessionStorage.removeItem('jwtExp');
+		sessionStorage.removeItem('jwtRefresh');
 		store.dispatch('logout');
 		if (router.currentRoute.path !== '/login') {
 			router.push({ path: '/login' });

@@ -24,6 +24,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 
+import com.my.goldmanager.service.entity.JWTTokenInfo;
 import com.my.goldmanager.service.entity.KeyInfo;
 
 import io.jsonwebtoken.Jwts;
@@ -33,6 +34,8 @@ public class AuthenticationService {
 
 	@Value("${com.my.goldmanager.auth.jwtTokenValidity:7200000}") // Default: 2h
 	private long jwtTokenValidity;
+	@Value("${com.my.goldmanager.auth.jwtTokenValidity:3600000}") // Default: 1h
+	private long jwtTokenRefreshStart;
 
 	@Autowired
 	private AuthenticationManager authenticationManager;
@@ -40,23 +43,31 @@ public class AuthenticationService {
 	@Autowired
 	private AuthKeyInfoService authKeyInfoService;
 
-	public String getJWTToken(String username, String password) {
+	public JWTTokenInfo getJWTToken(String username, String password) {
 		Authentication authentication = authenticationManager
 				.authenticate(new UsernamePasswordAuthenticationToken(username, password));
 
 		User user = (User) authentication.getPrincipal();
 		KeyInfo keyInfo = authKeyInfoService.getKeyInfoForUserName(user.getUsername());
+
 		return buildJWTToken(user.getUsername(), keyInfo);
 
 	}
 
-	private String buildJWTToken(String username, KeyInfo keyInfo) {
-		return Jwts.builder().header().add("keyId", keyInfo.getKeyId()).and().subject(username)
-				.issuedAt(new Date()).expiration(new Date(System.currentTimeMillis() + jwtTokenValidity))
-				.signWith(keyInfo.getKey()).compact();
+	private JWTTokenInfo buildJWTToken(String username, KeyInfo keyInfo) {
+		Date issuedDate = new Date(System.currentTimeMillis());
+		Date expirationDate = new Date(issuedDate.toInstant().toEpochMilli() + jwtTokenValidity);
+		Date refreshDate = new Date(issuedDate.toInstant().toEpochMilli() + jwtTokenRefreshStart);
+		JWTTokenInfo result = new JWTTokenInfo();
+		result.setEpiresOn(expirationDate);
+		result.setRefreshAfter(refreshDate);
+
+		result.setToken(Jwts.builder().header().add("keyId", keyInfo.getKeyId()).and().subject(username)
+				.issuedAt(issuedDate).expiration(expirationDate).signWith(keyInfo.getKey()).compact());
+		return result;
 	}
 
-	public String refresJWTToken(String username) {
+	public JWTTokenInfo refrehsJWTToken(String username) {
 		KeyInfo keyInfo = authKeyInfoService.getKeyInfoForUserName(username);
 		return buildJWTToken(username, keyInfo);
 
