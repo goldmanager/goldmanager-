@@ -37,4 +37,4 @@ USER spring:spring
 EXPOSE 8080
 EXPOSE 8443
 
-ENTRYPOINT ["java", "-jar", "/home/spring/app.jar"]
+ENTRYPOINT ["java", "-jar", "/opt/goldmanager/app.jar"]
