@@ -22,7 +22,7 @@ RUN gradle clean bootJar
 
 FROM anchore/syft:latest as sbom-generator
 COPY --from=build-backend /home/gradle/project/build/libs/*.jar /app.jar
-user root:root
+USER root:root
 RUN syft /app.jar -o json > /sbom.json
 
 FROM eclipse-temurin:21-jre-alpine
