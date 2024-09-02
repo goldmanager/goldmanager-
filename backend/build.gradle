@@ -22,13 +22,16 @@ configurations {
 
 }
 cyclonedxBom {
-   setOutputName("bom")
+   setOutputName("sbom")
    setOutputFormat("json")
 }
 
 bootBuildImage {
     imageName = "${buildDockerImageName}:${project.version}"
    
+}
+bootJar{
+	dependsOn cyclonedxBom
 }
 repositories {
 	mavenCentral()
