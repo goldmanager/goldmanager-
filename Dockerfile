@@ -31,7 +31,8 @@ COPY --from=build-backend /home/gradle/project/build/libs/*.jar /opt/goldmanager
 COPY --from=build-backend /home/gradle/project/build/reports/sbom.json /sbom.spdx.json
 RUN chmod +r /opt/goldmanager -R
 RUN chmod 444 /opt/goldmanager/app.jar 
-    
+RUN mkdir /etc/ssl/certs/ -p
+RUN chown spring:spring /etc/ssl/certs/
 USER spring:spring
 
 EXPOSE 8080
