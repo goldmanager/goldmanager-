@@ -28,7 +28,7 @@ RUN addgroup -S spring && adduser -S spring -G spring
 WORKDIR /opt/goldmanager
 
 COPY --from=build-backend /home/gradle/project/build/libs/*.jar /opt/goldmanager/app.jar
-COPY --from=build-backend /home/gradle/project/build/reports/sbom.json /sbom.spdx.json
+COPY --from=build-backend /home/gradle/project/build/reports/application.cdx.json /bom/application.cdx.json
 RUN chmod +r /opt/goldmanager -R
 RUN chmod 444 /opt/goldmanager/app.jar 
     
