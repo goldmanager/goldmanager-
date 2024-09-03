@@ -20,19 +20,13 @@ COPY --from=build-frontend /app/dist /home/gradle/project/src/main/resources/sta
 
 RUN gradle clean bootJar
 
-
 FROM eclipse-temurin:21-jre-alpine
-
-RUN addgroup -S spring && adduser -S spring -G spring
 
 WORKDIR /opt/goldmanager
 
 COPY --from=build-backend /home/gradle/project/build/libs/*.jar /opt/goldmanager/app.jar
+
 COPY --from=build-backend /home/gradle/project/build/reports/application.cdx.json /bom/application.cdx.json
-RUN chmod +r /opt/goldmanager -R
-RUN chmod 444 /opt/goldmanager/app.jar 
-    
-USER spring:spring
 
 EXPOSE 8080
 EXPOSE 8443
