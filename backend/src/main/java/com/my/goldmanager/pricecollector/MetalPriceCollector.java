@@ -82,7 +82,7 @@ public class MetalPriceCollector {
 	@Setter
 	private String apiKey;
 
-	@Value("${metalpricecollector.endpoint:https://api.metalpricecollector.com/v1/}")
+	@Value("${metalpricecollector.endpoint:https://api.metalpriceapi.com/v1}")
 	@Getter
 	@Setter
 	private String endpoint;
