@@ -102,7 +102,7 @@ public class MetalPriceCollector {
 	@Setter
 	private String mappings;
 
-	@Value("${metalpricecollector.fetchPeriodMinutes:60}")
+	@Value("${metalpricecollector.fetchIntervalMinutes:60}")
 	@Getter
 	@Setter
 	private long fetchPeriodMinutes;
@@ -134,7 +134,7 @@ public class MetalPriceCollector {
 		return result;
 	}
 
-	@Scheduled(timeUnit = TimeUnit.MINUTES, fixedRateString = "${metalpricecollector.fetchPeriodMinutes:60}", initialDelay = 5)
+	@Scheduled(timeUnit = TimeUnit.MINUTES, fixedRateString = "${metalpricecollector.fetchIntervalMinutes:60}", initialDelay = 5)
 	public void getCurrentPrices() {
 		Date date = new Date();
 		if (isInitialized.get() && (lastUpdate == null
