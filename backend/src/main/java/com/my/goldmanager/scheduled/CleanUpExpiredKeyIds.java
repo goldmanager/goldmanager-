@@ -23,7 +23,7 @@ import com.my.goldmanager.service.AuthKeyInfoService;
 
 
 /**
- * This Component Cleansup the expired Authentication Keys all 15 minutes;
+ * This Component Cleans up the expired Authentication Keys all 15 minutes;
  */
 @Component
 @Profile({ "default", "dev" })
