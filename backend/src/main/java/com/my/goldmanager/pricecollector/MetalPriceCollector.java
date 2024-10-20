@@ -177,12 +177,17 @@ public class MetalPriceCollector {
 	}
 
 	private void updateMaterialPrice(Material m, float price, Date date) {
-		m.setEntryDate(date);
-		m.setPrice(price);
-		try {
-			materialService.update(m.getId(), m);
-		} catch (ValidationException e) {
-			logger.error("Can not update material {}", m.getName(), e);
+		if (m.getEntryDate().before(date)) {
+			m.setEntryDate(date);
+			m.setPrice(price);
+			try {
+				materialService.update(m.getId(), m);
+			} catch (ValidationException e) {
+				logger.error("Can not update metal {}", m.getName(), e);
+			}
+		} else {
+			logger.warn("Skipping Update for metal {}, since the fetched price is older than the currently stored.",
+					m.getName());
 		}
 	}
 
@@ -219,8 +224,7 @@ public class MetalPriceCollector {
 									.headers("X-API-KEY", apiKey, "Content-Type", "application/json")
 									.uri(URI.create(endpoint + "/timeframe?base=" + currency + "&start_date="
 											+ simpleDateFormat.format(dateFrom) + "&end_date="
-											+ simpleDateFormat.format(today)
-											+ "&currencies=" + entry.getValue()))
+											+ simpleDateFormat.format(today) + "&currencies=" + entry.getValue()))
 									.build();
 							HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 							if (response.statusCode() == 200) {
@@ -257,8 +261,6 @@ public class MetalPriceCollector {
 
 			} catch (IOException | InterruptedException | ParseException e) {
 				logger.error("Can not parse entry date", e);
-			} finally {
-				lastUpdate = new Date();
 			}
 		}
 		isInitialized.set(true);
