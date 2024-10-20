@@ -153,6 +153,8 @@ class MetalPriceCollectorTest {
 		silver.setName("Silver");
 		silver.setPrice(10f);
 
+		Date expecteddate = Date
+				.from(Instant.ofEpochSecond(Instant.now().minus(5, ChronoUnit.SECONDS).getEpochSecond()));
 		materialService.store(silver);
 
 		when(httpClientBuilder.build()).thenReturn(httpClient);
@@ -168,7 +170,7 @@ class MetalPriceCollectorTest {
 
 				latestPrices.setBase(queryString.get("base"));
 
-				latestPrices.setTimestamp(Instant.now().getEpochSecond());
+				latestPrices.setTimestamp(expecteddate.toInstant().getEpochSecond());
 
 				latestPrices.setRates(new TreeMap<String, Float>());
 				latestPrices.getRates().put("XAU", 3650f);
@@ -207,6 +209,10 @@ class MetalPriceCollectorTest {
 		Assertions.assertEquals(2, materialHistoryRepository.findByMaterial(silver.getId()).size());
 		Assertions.assertEquals(3650f, materialService.getById(gold.getId()).get().getPrice());
 		Assertions.assertEquals(365f, materialService.getById(silver.getId()).get().getPrice());
+		Assertions.assertEquals(expecteddate.toInstant().toEpochMilli(),
+				materialService.getById(gold.getId()).get().getEntryDate().toInstant().toEpochMilli());
+		Assertions.assertEquals(expecteddate.toInstant().toEpochMilli(),
+				materialService.getById(silver.getId()).get().getEntryDate().toInstant().toEpochMilli());
 	}
 
 	@Test

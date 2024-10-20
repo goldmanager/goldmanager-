@@ -22,6 +22,7 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HashMap;
@@ -62,7 +63,7 @@ import lombok.Setter;
 @Profile({ "default", "dev" })
 public class MetalPriceCollector {
 	private static final Logger logger = LoggerFactory.getLogger(MetalPriceCollector.class);
-	private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+	private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
 	private AtomicBoolean isInitialized = new AtomicBoolean(false);
 	private volatile Date lastUpdate;
@@ -155,10 +156,12 @@ public class MetalPriceCollector {
 						LatestPrices latestPrices = objectMapper.readValue(body, LatestPrices.class);
 						if (latestPrices.isSuccess() && latestPrices.getRates() != null) {
 
+							Date entryDate = Date.from(Instant.ofEpochSecond(latestPrices.getTimestamp()));
 							materials.stream().filter(m -> mappingSettings.get(m.getName()) != null
 									&& latestPrices.getRates().get(currency + mappingSettings.get(m.getName())) != null)
 									.forEach(m -> updateMaterialPrice(m,
-											latestPrices.getRates().get(currency + mappingSettings.get(m.getName()))));
+											latestPrices.getRates().get(currency + mappingSettings.get(m.getName())),
+											entryDate));
 						}
 					} else {
 						logger.error("Could not fetch current prices, response code: {}, body:{}", body);
@@ -173,8 +176,8 @@ public class MetalPriceCollector {
 
 	}
 
-	private void updateMaterialPrice(Material m, float price) {
-		m.setEntryDate(new Date());
+	private void updateMaterialPrice(Material m, float price, Date date) {
+		m.setEntryDate(date);
 		m.setPrice(price);
 		try {
 			materialService.update(m.getId(), m);
@@ -215,7 +218,8 @@ public class MetalPriceCollector {
 							HttpRequest request = HttpRequest.newBuilder().GET()
 									.headers("X-API-KEY", apiKey, "Content-Type", "application/json")
 									.uri(URI.create(endpoint + "/timeframe?base=" + currency + "&start_date="
-											+ dateFormat.format(dateFrom) + "&end_date=" + dateFormat.format(today)
+											+ simpleDateFormat.format(dateFrom) + "&end_date="
+											+ simpleDateFormat.format(today)
 											+ "&currencies=" + entry.getValue()))
 									.build();
 							HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
@@ -227,9 +231,9 @@ public class MetalPriceCollector {
 									for (Entry<String, TreeMap<String, Float>> rate : timeframe.getRates().entrySet()) {
 
 										if (rate.getValue().get(currency + entry.getValue()) != null) {
-											Date entryDate = dateFormat.parse(rate.getKey());
 
 											material.setPrice(rate.getValue().get(currency + entry.getValue()));
+											Date entryDate = simpleDateFormat.parse(rate.getKey());
 											material.setEntryDate(entryDate);
 											MaterialHistory mh = new MaterialHistory();
 
@@ -251,7 +255,7 @@ public class MetalPriceCollector {
 					}
 				}
 
-			} catch (ParseException | IOException | InterruptedException e) {
+			} catch (IOException | InterruptedException | ParseException e) {
 				logger.error("Can not parse entry date", e);
 			} finally {
 				lastUpdate = new Date();
