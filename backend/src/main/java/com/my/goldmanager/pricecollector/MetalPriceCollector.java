@@ -23,7 +23,6 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -66,7 +65,7 @@ public class MetalPriceCollector {
 	private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
 	private AtomicBoolean isInitialized = new AtomicBoolean(false);
-	private volatile Date lastUpdate;
+
 
 	@Autowired
 	@Getter
@@ -135,12 +134,11 @@ public class MetalPriceCollector {
 		return result;
 	}
 
-	@Scheduled(timeUnit = TimeUnit.MINUTES, fixedRateString = "${metalpricecollector.fetchIntervalMinutes:60}", initialDelay = 5)
+	@Scheduled(timeUnit = TimeUnit.MINUTES, fixedRateString = "${metalpricecollector.fetchIntervalMinutes:60}", initialDelay = 10)
 	public void getCurrentPrices() {
-		Date date = new Date();
-		if (isInitialized.get() && (lastUpdate == null
-				|| lastUpdate.toInstant().isBefore(date.toInstant().minus(fetchPeriodMinutes, ChronoUnit.MINUTES)))) {
 
+		if (isInitialized.get()) {
+			logger.info("Updating prices");
 			Map<String, String> mappingSettings = getMetalMappings();
 			if (!mappingSettings.isEmpty() && apiKey != null) {
 				try (HttpClient httpClient = webClientBuilder.build()) {
@@ -172,7 +170,9 @@ public class MetalPriceCollector {
 			}
 
 		}
-		lastUpdate = date;
+		else {
+			logger.warn("Not yet initialized. Skipping");
+		}
 
 	}
 
@@ -182,6 +182,7 @@ public class MetalPriceCollector {
 			m.setPrice(price);
 			try {
 				materialService.update(m.getId(), m);
+				logger.info("Updated price for metal {}", m.getName());
 			} catch (ValidationException e) {
 				logger.error("Can not update metal {}", m.getName(), e);
 			}
