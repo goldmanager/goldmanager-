@@ -138,7 +138,7 @@ public class MetalPriceCollector {
 	public void getCurrentPrices() {
 
 		if (isInitialized.get()) {
-			logger.info("Updating prices");
+			logger.debug("Updating prices");
 			Map<String, String> mappingSettings = getMetalMappings();
 			if (!mappingSettings.isEmpty() && apiKey != null) {
 				try (HttpClient httpClient = webClientBuilder.build()) {
