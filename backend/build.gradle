@@ -7,7 +7,7 @@ plugins {
 }
 
 group = 'de.goldmanager'
-version = '1.0.0'
+version = '0.9.1'
 compileJava.options.encoding = 'UTF-8'
 java {
 	toolchain {
