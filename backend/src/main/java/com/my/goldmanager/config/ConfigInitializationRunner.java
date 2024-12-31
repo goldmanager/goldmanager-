@@ -79,7 +79,7 @@ public class ConfigInitializationRunner implements ApplicationRunner {
 			unitService.save(unit);
 			logger.info("Created initial Unit 'Oz'");
 		} else {
-			logger.info("Units existing. Skipping creation of material 'Oz'");
+			logger.info("Units existing. Skipping creation of unit 'Oz'");
 		}
 
 		if (metalsMetalApisPriceCollector != null) {
