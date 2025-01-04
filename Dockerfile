@@ -18,7 +18,7 @@ COPY backend .
 
 COPY --from=build-frontend /app/dist /home/gradle/project/src/main/resources/static
 
-RUN gradle clean bootJar
+RUN gradle clean bootJar -PskipTests
 
 FROM eclipse-temurin:21-jre-alpine
 
