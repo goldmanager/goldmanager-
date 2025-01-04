@@ -39,8 +39,11 @@ import com.my.goldmanager.service.exception.ValidationException;
  */
 @Component
 public class DataExportService {
+
 	private static final SecureRandom random = new SecureRandom();
+
 	private static final String ENCRYPTION_ALG = "AES";
+	private static final String ENCRYPTION_CIPHER_ALG = "AES/GCM/NoPadding";
 	private static final String SECRETKEY_ALG = "PBKDF2WithHmacSHA256";
 	private static final int KEY_LENGTH = 256;
 	private static final byte[] header_start = { 'E', 'x', 'p', 'e', 'n', 'c', 'v', '1' };
@@ -72,7 +75,7 @@ public class DataExportService {
 
 		SecretKey key = generateKeyFromPassword(encryptionPassword, salt);
 		Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);
-		Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+		Cipher cipher = Cipher.getInstance(ENCRYPTION_CIPHER_ALG);
 		cipher.init(Cipher.ENCRYPT_MODE, key);
 		ByteArrayOutputStream encryptedData = new ByteArrayOutputStream();
 		try (CipherOutputStream cout = new CipherOutputStream(encryptedData, cipher)) {
