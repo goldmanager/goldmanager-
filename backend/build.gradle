@@ -112,6 +112,7 @@ tasks.withType(JavaCompile) {
 }
 
 tasks.named('test') {
+ 	onlyIf { !project.hasProperty('skipTests') }
 	outputs.dir snippetsDir
 	useJUnitPlatform()
 }
