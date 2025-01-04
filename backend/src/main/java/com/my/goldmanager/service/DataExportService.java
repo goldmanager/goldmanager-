@@ -23,6 +23,7 @@ import javax.crypto.Cipher;
 import javax.crypto.CipherOutputStream;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -76,7 +77,10 @@ public class DataExportService {
 		SecretKey key = generateKeyFromPassword(encryptionPassword, salt);
 		Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);
 		Cipher cipher = Cipher.getInstance(ENCRYPTION_CIPHER_ALG);
-		cipher.init(Cipher.ENCRYPT_MODE, key);
+
+		GCMParameterSpec gcmSpec = new GCMParameterSpec(128, iv);
+		cipher.init(Cipher.ENCRYPT_MODE, key, gcmSpec);
+
 		ByteArrayOutputStream encryptedData = new ByteArrayOutputStream();
 		try (CipherOutputStream cout = new CipherOutputStream(encryptedData, cipher)) {
 			// Adding magic bytes to ensure correct encryption:
