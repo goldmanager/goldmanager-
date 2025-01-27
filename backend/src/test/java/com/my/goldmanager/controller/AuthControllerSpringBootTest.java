@@ -43,7 +43,7 @@ public class AuthControllerSpringBootTest {
 	private UserLoginRepository userLoginRepository;
 
 	@Autowired
-	AuthenticationService authenticationService;
+	private AuthenticationService authenticationService;
 
 	@Autowired
 	private UserService userService;
